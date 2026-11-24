@@ -19,27 +19,20 @@ class Update extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('products')->where(function ($query) {
-                    return $query->where('type', $this->type);
-                })->ignore($this->route('product'))
+                Rule::unique('products', 'name_en')->ignore($this->route('product')),
             ],
             'name_ar' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('products')->where(function ($query) {
-                    return $query->where('type', $this->type);
-                })->ignore($this->route('product'))
+                Rule::unique('products', 'name_ar')->ignore($this->route('product')),
             ],
             'desc_en' => ['required', 'string'],
             'desc_ar' => ['required', 'string'],
             'category_id' => ['required', 'exists:categories,id'],
             'brand_id' => ['required', 'exists:brands,id'],
-            'type' => ['required', 'in:wholesale,retail'],
             'variants' => 'nullable|array',
-            'variants.*.retail_price' => $this->type === 'retail' ? 'required|numeric|min:0' : 'nullable|numeric|min:0',
-            'variants.*.wholesale_price' => $this->type === 'wholesale' ? 'required|numeric|min:0' : 'nullable|numeric|min:0',
-            'variants.*.min_quantity' => $this->type === 'wholesale' ? 'required|integer|min:1' : 'nullable|integer|min:1',
+            'variants.*.price' => 'required|numeric|min:0',
             'variants.*.stock' => 'required|integer|min:0',
             'variants.*.attributes' => [
                 'nullable',
@@ -62,9 +55,9 @@ class Update extends FormRequest
     {
         return [
             'name_en.required' => __('English name is required.'),
-            'name_en.unique' => __('The English name has already been taken for this product type.'),
+            'name_en.unique' => __('The English name has already been taken.'),
             'name_ar.required' => __('Arabic name is required.'),
-            'name_ar.unique' => __('The Arabic name has already been taken for this product type.'),
+            'name_ar.unique' => __('The Arabic name has already been taken.'),
             'desc_en.required' => __('English description is required.'),
             'desc_ar.required' => __('Arabic description is required.'),
             'category_id.required' => __('Category is required.'),

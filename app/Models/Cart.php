@@ -12,7 +12,6 @@ class Cart extends Model
         "user_id",
         "status",
         "total",
-        "type",
     ];
     public function user()
     {
@@ -20,7 +19,7 @@ class Cart extends Model
     }
     public function items()
     {
-        return $this->belongsToMany(Property::class, 'cart_items')->withPivot("quantity","unit_price","line_total","sale_type")->withTimestamps();
+        return $this->belongsToMany(Property::class, 'cart_items')->withPivot("quantity","unit_price","line_total")->withTimestamps();
     }
     public function settings()
     {

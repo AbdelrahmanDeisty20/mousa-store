@@ -18,7 +18,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'lang' => \App\Http\Middleware\SetLang::class,
             'authCheck' => \App\Http\Middleware\authCheck::class,
-            'price_mode' => \App\Http\Middleware\PriceModeMiddleware::class,
             'EmailVerfived' => \App\Http\Middleware\EmailVerfived::class,
             'AdminCheck' => \App\Http\Middleware\AdminCheck::class,
         ]);

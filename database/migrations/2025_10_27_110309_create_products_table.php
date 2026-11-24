@@ -17,16 +17,8 @@ return new class extends Migration
             $table->string('name_en');
             $table->text('desc_ar');
             $table->text('desc_en');
-            $table->decimal('retail_price', 10, 2)->index();
-            $table->decimal('wholesale_price', 10, 2)->index();
-            $table->integer('min_quantity')->nullable();
-            $table->decimal('disscount_price', 10, 2)->nullable();
-            $table->integer('stock')->default(0);
-            $table->string('main_image');
-            $table->json('images');
             $table->timestamps();
             $table->index('created_at');
-
         });
     }
 

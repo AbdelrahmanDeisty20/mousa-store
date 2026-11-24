@@ -31,7 +31,7 @@ class ProductFilterService
         }
 
         // فلترة حسب السعر
-        $priceColumn = app('price_mode') === 'wholesale' ? 'wholesale_price' : 'retail_price';
+        $priceColumn = 'price';
         if (! empty($filters['min_price'])) {
             $query->where($priceColumn, '>=', $filters['min_price']);
         }

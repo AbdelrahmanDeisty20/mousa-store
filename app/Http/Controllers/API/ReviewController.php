@@ -13,12 +13,9 @@ class ReviewController extends Controller
 {
 public function index(reviewRequest $request)
 {
-             $priceMode = app('price_mode');
     $product = $request -> validated();
     $reviews = Review::with("user")
         ->where("product_id", $product['product_id'])
-        ->where("type",$priceMode)
-        
         ->paginate(10);
 
     if ($reviews->isEmpty()) {
@@ -32,12 +29,11 @@ public function index(reviewRequest $request)
     return response()->json([
         "success" => true,
         "message" => 'retrieved reviews successfully',
-        "data" => $reviews->makeHidden("type")
+        "data" => $reviews
     ]);
 }
     public function store(create $request)
     {
-         $priceMode = app('price_mode');
         $data = $request->validated();
         $user = Auth::user();
         $reviews = Review::create([
@@ -45,7 +41,6 @@ public function index(reviewRequest $request)
             "rate"=>$data["rate"],
             "user_id"=>$user->id,
             "product_id"=>$data["product_id"],
-        'type'       => $priceMode,
         ]);
         return response()->json([
             "success"=>true,

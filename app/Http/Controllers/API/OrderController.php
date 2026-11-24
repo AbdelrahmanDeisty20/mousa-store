@@ -29,14 +29,11 @@ class OrderController extends Controller
             ->get();
 
         $data = $orders->map(function ($order) {
-            $saleTypes = $order->items->map(fn ($item) => $item->pivot->sale_type);
-
             return [
                 'id'           => $order->id,
                 'order_number' => $order->order_number,
                 'created_at'   => $order->created_at,
                 'status'       => $order->status,
-                'sale_type'    => $saleTypes->unique()->implode(', ')
             ];
         });
 

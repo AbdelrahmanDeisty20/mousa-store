@@ -18,8 +18,7 @@ class update extends FormRequest
     {
         return [
             'property_id' => ['required', 'exists:properties,id'],
-            'discount_retail' => ['nullable', 'numeric', 'min:0'],
-            'discount_wholesale' => ['nullable', 'numeric', 'min:0'],
+            'discount_price' => ['required', 'numeric', 'min:0'],
             'start' => ['required', 'date'],
             'end' => ['required', 'date', 'after_or_equal:start'],
         ];
@@ -39,7 +38,7 @@ class update extends FormRequest
 
             if ($propertyId && $newStart && $newEnd) {
                 // 1. Check overlap excluding current offer
-                $conflictingOffer = Offer::where('Property_id', $propertyId)
+                $conflictingOffer = Offer::where('property_id', $propertyId)
                     ->when($offerId, function($q) use ($offerId) {
                         return $q->where('id', '!=', $offerId);
                     })
@@ -54,22 +53,10 @@ class update extends FormRequest
                     $validator->errors()->add('end', __('Conflicting offer exists for this property in the selected time range.'));
                 }
 
-                // Get product type
-                $property = Property::with('product')->find($propertyId);
-                $type = $property->product->type ?? 'retail';
-
-                // Check type-specific discount
-                if ($type === 'retail' && empty($this->input('discount_retail'))) {
-                    $validator->errors()->add('discount_retail', __('Retail discount is required for retail products.'));
-                }
-                if ($type === 'wholesale' && empty($this->input('discount_wholesale'))) {
-                    $validator->errors()->add('discount_wholesale', __('Wholesale discount is required for wholesale products.'));
-                }
-
                 // 2. Same hour check excluding current offer
                 $newStartDate = Carbon::parse($newStart);
                 $startHour = $newStartDate->format('Y-m-d H');
-                $sameHourOffer = Offer::where('Property_id', $propertyId)
+                $sameHourOffer = Offer::where('property_id', $propertyId)
                     ->when($offerId, function($q) use ($offerId) {
                         return $q->where('id', '!=', $offerId);
                     })
@@ -89,10 +76,9 @@ class update extends FormRequest
         return [
             'property_id.required' => __('Please select a product variant.'),
             'property_id.exists' => __('Selected product variant does not exist.'),
-            'discount_retail.numeric' => __('Retail discount must be a number.'),
-            'discount_retail.min' => __('Retail discount must be at least 0.'),
-            'discount_wholesale.numeric' => __('Wholesale discount must be a number.'),
-            'discount_wholesale.min' => __('Wholesale discount must be at least 0.'),
+            'discount_price.required' => __('Discount is required.'),
+            'discount_price.numeric' => __('Discount must be a number.'),
+            'discount_price.min' => __('Discount must be at least 0.'),
             'start.required' => __('Start date is required.'),
             'start.date' => __('Start date must be a valid date.'),
             'end.required' => __('End date is required.'),

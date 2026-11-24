@@ -22,7 +22,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::get('products-all', [ProductController::class, 'products']);
 
 Route::group(['prefix' => 'v1', 'middleware' => ['lang']], function () {
-    Route::post('type', [HomeController::class, 'shopType']);
     Route::post('register', [AuthController::class, 'register'])->middleware('throttle:20,1');
     Route::post('login', [AuthController::class, 'login'])->middleware(['throttle:20,1', 'EmailVerfived']);
     Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('throttle:10,1');
@@ -51,21 +50,19 @@ Route::group(['prefix' => 'v1', 'middleware' => ['lang']], function () {
     // routes/api.php
     Route::post('fcm-token', [HomeController::class, 'saveFcmToken']);
 
-    Route::get('offers', [OfferController::class, 'index'])->middleware('price_mode');
+    Route::get('offers', [OfferController::class, 'index']);
     Route::get('banners', [HomeController::class, 'banners']);
-    Route::group(['middleware' => ['price_mode']], function () {
-        Route::get('products', [ProductController::class, 'index']);
-        Route::get('products/category/{id}', [ProductController::class, 'productsByCategory']);
-        Route::get('products/brand/{id}', [ProductController::class, 'productsByBrand']);
-        Route::get('latset-product', [ProductController::class, 'latsetProduct']);
-        Route::get('product', [ProductController::class, 'show']);
-        Route::get('attributes', [HomeController::class, 'attributes']);
-        Route::get('filter/product', [ProductFilterController::class, 'filter']);
+    Route::get('products', [ProductController::class, 'index']);
+    Route::get('products/category/{id}', [ProductController::class, 'productsByCategory']);
+    Route::get('products/brand/{id}', [ProductController::class, 'productsByBrand']);
+    Route::get('latset-product', [ProductController::class, 'latsetProduct']);
+    Route::get('product', [ProductController::class, 'show']);
+    Route::get('attributes', [HomeController::class, 'attributes']);
+    Route::get('filter/product', [ProductFilterController::class, 'filter']);
 
-        Route::get('/search', [HomeController::class, 'search']);
+    Route::get('/search', [HomeController::class, 'search']);
 
-        Route::get('reviews', [ReviewController::class, 'index']);
-    });
+    Route::get('reviews', [ReviewController::class, 'index']);
     Route::group(['middleware' => ['auth:sanctum', 'EmailVerfived']], function () {
         Route::post('send-to-user', [HomeController::class, 'sendToUser']);
         Route::post('test-specific-token', [HomeController::class, 'testSpecificToken']);
@@ -73,14 +70,14 @@ Route::group(['prefix' => 'v1', 'middleware' => ['lang']], function () {
         Route::post('fcm-token-user', [HomeController::class, 'saveFcmToken']);
 
         Route::post('update-profile', [AuthController::class, 'updateProfile']);
-        Route::apiResource('carts', CartController::class)->middleware('price_mode');
-        Route::get('favorites', [ProductController::class, 'favorites'])->middleware('price_mode');
+        Route::apiResource('carts', CartController::class);
+        Route::get('favorites', [ProductController::class, 'favorites']);
         Route::post('add-product', [CartController::class, 'create']);
         // Route::post('reviews', [ReviewController::class, 'index']);
-        Route::post('reviews/create', [ReviewController::class, 'store'])->middleware('price_mode');
-        Route::post('checkouts', [CheckoutController::class, 'checkout'])->middleware('price_mode');
-        Route::post('addFavorite', [ProductController::class, 'addFavorite'])->middleware('price_mode');
-        Route::post('removeFavorite', [ProductController::class, 'removeFavorite'])->middleware('price_mode');
+        Route::post('reviews/create', [ReviewController::class, 'store']);
+        Route::post('checkouts', [CheckoutController::class, 'checkout']);
+        Route::post('addFavorite', [ProductController::class, 'addFavorite']);
+        Route::post('removeFavorite', [ProductController::class, 'removeFavorite']);
         Route::post('orders/{order}/pay', [PaymentController::class, 'createPayment']);
         Route::get('orders', [OrderController::class, 'index']);
         Route::get('order', [OrderController::class, 'show']);

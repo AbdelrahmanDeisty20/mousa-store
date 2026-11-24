@@ -34,7 +34,6 @@
                                         <tr>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-3">{{ __('Order #') }}</th>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">{{ __('User') }}</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">{{ __('Type') }}</th>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">{{ __('Total') }}</th>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">{{ __('Status') }}</th>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">{{ __('Created') }}</th>
@@ -53,11 +52,6 @@
                                                         <h6 class="mb-0 text-sm">{{ $order->user->first_name ?? 'N/A' }}</h6>
                                                         <p class="text-xs text-secondary mb-0">{{ $order->user_phone }}</p>
                                                     </div>
-                                                </td>
-                                                <td class="align-middle text-center text-sm">
-                                                    <span class="badge badge-sm bg-gradient-{{ $order->type == 'wholesale' ? 'warning' : 'info' }}">
-                                                        {{ strtoupper($order->type) }}
-                                                    </span>
                                                 </td>
                                                 <td class="align-middle text-center">
                                                     <span class="text-sm font-weight-bold text-success">{{ number_format($order->total_price, 2) }} {{ __('EGP') }}</span>

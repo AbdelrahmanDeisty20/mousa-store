@@ -14,45 +14,23 @@ class Offer extends Model
         'start',
         'end',
         'property_id',
-        'discount_retail',
-        'discount_wholesale',
         'discount_price',
-        'disscount_price',
+        'discount',
     ];
 
     protected $appends = ['disscount_price'];
 
-    protected $hidden = [
-        "discount_retail",
-        "discount_wholesale",
-    ];
     protected $casts = [
-        "discount_retail" => "integer",
-        "discount_wholesale" => "integer",
+        'discount_price' => 'float',
+        'discount' => 'float',
     ];
+
     public function getDisscountPriceAttribute()
     {
-        if (!empty($this->attributes['disscount_price'])) {
-            return $this->attributes['disscount_price'];
-        }
-        if (!empty($this->attributes['discount_price'])) {
-            return $this->attributes['discount_price'];
-        }
-
-        $type = app()->has('price_mode')
-            ? app('price_mode')
-            : ($this->relationLoaded('variant') && $this->variant && $this->variant->relationLoaded('product') && $this->variant->product
-                ? $this->variant->product->type
-                : null);
-
-        if ($type === 'wholesale') {
-            return $this->discount_wholesale ?? $this->discount_retail ?? 0;
-        }
-        if ($type === 'retail') {
-            return $this->discount_retail ?? $this->discount_wholesale ?? 0;
-        }
-
-        return $this->discount_retail ?? $this->discount_wholesale ?? 0;
+        return $this->attributes['disscount_price']
+            ?? $this->attributes['discount_price']
+            ?? $this->attributes['discount']
+            ?? 0;
     }
 
     /**

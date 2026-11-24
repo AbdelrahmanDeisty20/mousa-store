@@ -9,14 +9,14 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['order_number', 'user_id', 'type', 'total_price', 'status', 'user_name', 'user_phone', 'user_address', 'governorate_id', 'notice'];
+    protected $fillable = ['order_number', 'user_id', 'total_price', 'status', 'user_name', 'user_phone', 'user_address', 'governorate_id', 'notice'];
 
     public function items()
     {
         return $this
             ->belongsToMany(Property::class, 'orders_items', 'order_id', 'property_id')
             ->withTrashed()
-            ->withPivot(['quantity', 'price', 'sale_type'])
+            ->withPivot(['quantity', 'price'])
             ->withTimestamps();
     }
 

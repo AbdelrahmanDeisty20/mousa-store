@@ -52,25 +52,19 @@ class ProductExport implements FromCollection, WithHeadings, WithMapping
         $category = $product->category ?? $product->categories;
         $brand = $product->brand;
 
-        // Determine the relevant price based on product type
-        $price = 0;
-        if ($variant) {
-            $price = ($product->type === 'retail') ? $variant->retail_price : $variant->wholesale_price;
-        }
+        $price = $variant ? ($variant->price ?? 0) : 0;
 
         return [
             $product->name_ar,
             $product->name_en,
             $product->desc_ar,
             $product->desc_en,
-            $product->type,
             $category ? $category->name_ar : '',
             $category ? $category->name_en : '',
             $brand ? $brand->name_ar : '',
             $brand ? $brand->name_en : '',
             $price,
             $variant ? $variant->stock : 0,
-            $variant ? $variant->min_quantity : 1,
             // Attribute columns (single set, repeated rows)
             $attr ? $attr->key_ar : '',
             $attr ? $attr->key_en : '',
@@ -88,14 +82,12 @@ class ProductExport implements FromCollection, WithHeadings, WithMapping
             'product_name_en',
             'description_ar',
             'description_en',
-            'type',
             'category_name_ar',
             'category_name_en',
             'brand_name_ar',
             'brand_name_en',
             'price',
             'stock',
-            'min_quantity',
             'key_ar',
             'key_en',
             'value_ar',

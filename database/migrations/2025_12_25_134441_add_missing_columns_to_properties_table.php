@@ -31,17 +31,14 @@ return new class extends Migration
             if (!Schema::hasColumn('properties', 'images')) {
                 $table->json('images')->nullable()->after('main_image');
             }
-            if (!Schema::hasColumn('properties', 'retail_price')) {
-                $table->decimal('retail_price', 10, 2)->nullable()->after('images');
-            }
-            if (!Schema::hasColumn('properties', 'wholesale_price')) {
-                $table->decimal('wholesale_price', 10, 2)->nullable()->after('retail_price');
-            }
-            if (!Schema::hasColumn('properties', 'min_quantity')) {
-                $table->integer('min_quantity')->default(1)->after('wholesale_price');
+            if (!Schema::hasColumn('properties', 'price')) {
+                $table->decimal('price', 10, 2)->nullable()->after('images');
             }
             if (!Schema::hasColumn('properties', 'stock')) {
-                $table->integer('stock')->default(0)->after('min_quantity');
+                $table->integer('stock')->default(0)->after('price');
+            }
+            if (!Schema::hasColumn('properties', 'deleted_at')) {
+                $table->softDeletes();
             }
         });
     }

@@ -16,7 +16,6 @@ return new class extends Migration
             // $table->uuid('uuid')->unique();
             $table->string('order_number')->unique(); // ORD-...
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->enum('type', ['retail','wholesale'])->default('retail');
             $table->decimal('total_price', 12, 2);
             $table->enum('status', ['pending','processing','paid','cancelled'])->default('pending');
             $table->timestamps();

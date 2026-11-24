@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('offers', function (Blueprint $table) {
             $table->id();
-            $table->string('title_ar');
-            $table->string('title_en');
-            $table->string('desc_ar');
-            $table->string('desc_en');
-            $table->decimal("discount",8,2);
+            $table->string('title_ar')->nullable();
+            $table->string('title_en')->nullable();
+            $table->string('desc_ar')->nullable();
+            $table->string('desc_en')->nullable();
+            $table->decimal("discount", 8, 2)->nullable();
             $table->date('start')->nullable();
             $table->date('end')->nullable();
             $table->foreignId("product_id")->constrained("products")->cascadeOnDelete();

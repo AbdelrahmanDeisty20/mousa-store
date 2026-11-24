@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\shopTypeRequest;
 use App\Models\{Banner, Brand, Product, Setting, User, UserFcmToken, Attribute};
 use App\Service\FirebaseNotificationService;
 use Illuminate\Http\Request;
@@ -71,18 +70,6 @@ class HomeController extends Controller
         ]);
     }
 
-    public function shopType(ShopTypeRequest $request)
-    {
-        $type = $request->shop_type;
-        Cache::flush();
-        // غير مسجل دخول: نرسل بس القيمة، بدون session
-        return response()->json([
-            'status' => true,
-            'message' => 'تم تحديد نوع التسوق بنجاح .',
-            'shop_type' => $type,
-        ]);
-    }
-
     public function brand()
     {
         $brands = Brand::all()->map(function ($brand) {
@@ -130,14 +117,10 @@ class HomeController extends Controller
     public function search(Request $request)
     {
         $q = trim($request->input('search'));
-        $priceMode = app('price_mode');  // retail | wholesale
         $locale = app()->getLocale();
         $now = now();
         $priceColumn = 'price';
-        $targetOfferCol = $priceMode === 'wholesale' ? 'discount_wholesale' : 'discount_retail';
-        $offerColumn = \Illuminate\Support\Facades\Schema::hasColumn('offers', $targetOfferCol) 
-            ? $targetOfferCol 
-            : (\Illuminate\Support\Facades\Schema::hasColumn('offers', 'discount_price') ? 'discount_price' : 'discount_retail');
+        $offerColumn = \Illuminate\Support\Facades\Schema::hasColumn('offers', 'discount_price') ? 'discount_price' : 'discount';
         $page = request('page', 1);
 
         if (!$q) {
@@ -169,7 +152,6 @@ class HomeController extends Controller
                     ->where('end', '>=', $now);
             }
         ])
-            ->where('type', $priceMode)
             ->where(function ($query) use ($q) {
                 $query
                     ->where(function ($sq) use ($q) {

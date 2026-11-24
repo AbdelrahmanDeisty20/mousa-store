@@ -23,9 +23,9 @@ class ProductExportService
 
         // Header
         fputcsv($handle, [
-            'name_ar', 'name_en', 'desc_ar', 'desc_en', 'type',
-            'category', 'brand', 'retail_price', 'wholesale_price',
-            'stock', 'min_quantity', 'main_image', 'attributes'
+            'name_ar', 'name_en', 'desc_ar', 'desc_en',
+            'category', 'brand', 'price',
+            'stock', 'main_image', 'attributes'
         ]);
 
         foreach ($products as $product) {
@@ -43,13 +43,10 @@ class ProductExportService
                     $product->name_en,
                     $product->desc_ar,
                     $product->desc_en,
-                    $product->type,
                     $categories,
                     $product->brand->name_en ?? '',
-                    $variant->retail_price,
-                    $variant->wholesale_price,
+                    $variant->price,
                     $variant->stock,
-                    $variant->min_quantity,
                     $variant->main_image,
                     $attributes
                 ]);

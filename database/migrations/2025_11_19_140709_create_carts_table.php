@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->enum('status', ['active', 'ordered', 'abandoned'])->default('active');
             $table->decimal('total', 12, 2)->default(0);
-            $table->enum('type', ['retail','wholesale'])->default('retail');
             $table->index(['user_id', 'status']);
             $table->timestamps();
         });

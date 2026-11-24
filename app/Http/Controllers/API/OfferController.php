@@ -10,13 +10,9 @@ class OfferController extends Controller
 {
     public function index()
     {
-        $priceMode = app('price_mode') ?? 'wholesale';
         $priceColumn = 'price';
 
-        $targetOfferCol = $priceMode === 'wholesale' ? 'discount_wholesale' : 'discount_retail';
-        $offerColumn = Schema::hasColumn('offers', $targetOfferCol) 
-            ? $targetOfferCol 
-            : (Schema::hasColumn('offers', 'discount_price') ? 'discount_price' : 'discount_retail');
+        $offerColumn = Schema::hasColumn('offers', 'discount_price') ? 'discount_price' : 'discount';
 
         $page = request('page', 1);
         $now = now();
@@ -40,7 +36,6 @@ class OfferController extends Controller
                     });
             }
         ])
-            ->where('type', $priceMode)
             ->whereHas('variants.offers', function ($oq) use ($now) {
                 $oq
                     ->where('start', '<=', $now)

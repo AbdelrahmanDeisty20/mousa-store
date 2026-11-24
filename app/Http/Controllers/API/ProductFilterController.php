@@ -38,16 +38,11 @@ class ProductFilterController extends Controller
     {
         $filters = $request->validated();
 
-        $priceMode = app('price_mode') ?? 'wholesale';
-        
         // جدول الخصائص properties يحتوي فقط على العمود price
         $priceColumn = 'price';
 
-        // جدول العروض offers يحتوي على discount_wholesale و discount_retail و discount_price
-        $targetOfferCol = $priceMode === 'wholesale' ? 'discount_wholesale' : 'discount_retail';
-        $offerColumn = Schema::hasColumn('offers', $targetOfferCol) 
-            ? $targetOfferCol 
-            : (Schema::hasColumn('offers', 'discount_price') ? 'discount_price' : 'discount_retail');
+        // جدول العروض offers يحتوي على discount_price
+        $offerColumn = Schema::hasColumn('offers', 'discount_price') ? 'discount_price' : 'discount';
 
         $locale = app()->getLocale();
         $page = $filters['page'] ?? 1;
@@ -70,8 +65,7 @@ class ProductFilterController extends Controller
                       }
                   ]);
             }
-        ])->where('type', $priceMode)
-          ->whereHas('variants', function ($q) use ($priceColumn) {
+        ])->whereHas('variants', function ($q) use ($priceColumn) {
             $q->whereNotNull($priceColumn)->where($priceColumn, '>', 0);
         });
 

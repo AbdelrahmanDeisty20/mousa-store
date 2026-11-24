@@ -19,27 +19,20 @@ class create extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('products')->where(function ($query) {
-                    return $query->where('type', $this->type);
-                })
+                'unique:products,name_en',
             ],
             'name_ar' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('products')->where(function ($query) {
-                    return $query->where('type', $this->type);
-                })
+                'unique:products,name_ar',
             ],
             'desc_ar' => 'required',
             'desc_en' => 'required',
             'brand_id' => 'required|exists:brands,id',
             'category_id' => 'required|exists:categories,id',
-            'type' => 'required|in:wholesale,retail',
             'variants' => 'required|array|min:1',
-            'variants.*.retail_price' => $this->type === 'retail' ? 'required|numeric|min:0' : 'nullable|numeric|min:0',
-            'variants.*.wholesale_price' => $this->type === 'wholesale' ? 'required|numeric|min:0' : 'nullable|numeric|min:0',
-            'variants.*.min_quantity' => $this->type === 'wholesale' ? 'required|integer|min:1' : 'nullable|integer|min:1',
+            'variants.*.price' => 'required|numeric|min:0',
             'variants.*.stock' => 'required|integer|min:0',
             'variants.*.main_image_file' => 'required|image|max:2048',
             'variants.*.gallery_files' => 'required|array|min:1',
@@ -66,17 +59,17 @@ class create extends FormRequest
     {
         return [
             'name_en.required' => __('This field is required'),
-            'name_en.unique' => __('The English name has already been taken for this product type.'),
+            'name_en.unique' => __('The English name has already been taken.'),
             'name_ar.required' => __('This field is required'),
-            'name_ar.unique' => __('The Arabic name has already been taken for this product type.'),
+            'name_ar.unique' => __('The Arabic name has already been taken.'),
             'desc_ar.required' => __('This field is required'),
             'desc_en.required' => __('This field is required'),
             'brand_id.required' => __('This field is required'),
             'brand_id.exists' => __('Selected brand does not exist.'),
             'category_id.required' => __('This field is required'),
             'category_id.exists' => __('Selected category does not exist.'),
-            'variants.*.retail_price.required' => __('This field is required'),
-            'variants.*.wholesale_price.required' => __('This field is required'),
+            'variants.*.price.required' => __('This field is required'),
+            'variants.*.price.numeric' => __('Price must be a valid number.'),
             'variants.*.stock.required' => __('This field is required'),
             'variants.*.main_image_file.required' => __('This field is required'),
             'variants.*.gallery_files.required' => __('This field is required'),

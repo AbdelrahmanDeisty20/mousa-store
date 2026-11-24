@@ -11,7 +11,6 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $priceMode = app('price_mode');  // retail | wholesale
         $locale = app()->getLocale();
         $page = request('page', 1);
         $now = now();
@@ -31,7 +30,6 @@ class ProductController extends Controller
                   ]);
             }
         ])
-            ->where('type', $priceMode)
             ->whereHas('variants', function ($q) use ($priceColumn) {
                 $q->whereNotNull($priceColumn)
                   ->where($priceColumn, '>', 0);
@@ -100,7 +98,6 @@ class ProductController extends Controller
 
     public function productsByCategory($id)
     {
-        $priceMode = app('price_mode');
         $locale = app()->getLocale();
         $now = now();
         $priceColumn = 'price';
@@ -125,7 +122,6 @@ class ProductController extends Controller
                   ]);
             }
         ])
-            ->where('type', $priceMode)
             ->whereIn('category_id', $categoryIds)
             ->whereHas('variants', function ($q) use ($priceColumn) {
                 $q->whereNotNull($priceColumn)
@@ -145,7 +141,6 @@ class ProductController extends Controller
 
     public function productsByBrand($id)
     {
-        $priceMode = app('price_mode');
         $locale = app()->getLocale();
         $now = now();
         $priceColumn = 'price';
@@ -164,7 +159,6 @@ class ProductController extends Controller
                   ]);
             }
         ])
-            ->where('type', $priceMode)
             ->where('brand_id', $id)
             ->whereHas('variants', function ($q) use ($priceColumn) {
                 $q->whereNotNull($priceColumn)
@@ -247,7 +241,6 @@ class ProductController extends Controller
             ]);
         }
 
-        $priceMode = app('price_mode');
         $locale = app()->getLocale();
         $now = now();
         $priceColumn = 'price';
@@ -296,7 +289,6 @@ class ProductController extends Controller
             return [
                 'id' => $variant->id,
                 'price' => $variant->price,
-                'min_quantity' => $variant->min_quantity,
                 'stock' => $variant->stock,
                 'image_path' => $variant->image_path,
                 'images_path' => $variant->images_path,
@@ -315,7 +307,6 @@ class ProductController extends Controller
             'message' => __('product received successfully'),
             'data' => [
                 'id' => $product->id,
-                'min_quantity' => $priceMode === 'retail' ? 0 : ($product->variants->min('min_quantity') ?? 1),
                 'stock' => (int) $stock,
                 'name' => $product->name,
                 'desc' => $product->desc,
@@ -339,7 +330,6 @@ class ProductController extends Controller
 
     public function favorites()
     {
-        $priceMode = app('price_mode');
         $perPage = 10;
         $now = now();
         $locale = app()->getLocale();
@@ -347,7 +337,6 @@ class ProductController extends Controller
 
         $favorites = Favorite::where('user_id', auth()->id())
             ->where('is_favorite', true)
-            ->where('type', $priceMode)
             ->whereHas('product.variants', function ($q) use ($priceColumn) {
                 $q->whereNotNull($priceColumn)
                   ->where($priceColumn, '>', 0);
@@ -412,7 +401,6 @@ class ProductController extends Controller
     {
         $user = Auth::user();
         $data = $request->validated();
-        $priceMode = app('price_mode');
         $priceColumn = 'price';
 
         $product = Product::where('id', $data['product_id'])
@@ -425,13 +413,12 @@ class ProductController extends Controller
         if (!$product) {
             return response()->json([
                 'success' => true,
-                'message' => __('This product is not available in current price mode.'),
+                'message' => __('This product is not available.'),
             ]);
         }
 
         $favorite = Favorite::where('product_id', $product->id)
             ->where('user_id', $user->id)
-            ->where('type', $priceMode)
             ->first();
 
         if ($favorite && $favorite->is_favorite) {
@@ -447,7 +434,7 @@ class ProductController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => __('Product added to favorites successfully.'),
-                'data' => $favorite->makeHidden(['type']),
+                'data' => $favorite,
             ]);
         }
 
@@ -455,13 +442,12 @@ class ProductController extends Controller
             'product_id' => $product->id,
             'user_id' => $user->id,
             'is_favorite' => true,
-            'type' => $priceMode,
         ]);
 
         return response()->json([
             'success' => true,
             'message' => __('Product added to favorites successfully.'),
-            'data' => $favorite->makeHidden(['type']),
+            'data' => $favorite,
         ]);
     }
 
@@ -469,11 +455,9 @@ class ProductController extends Controller
     {
         $user = Auth::user();
         $data = $request->validated();
-        $priceMode = $data['price_mode'] ?? app('price_mode');
 
         $favorite = Favorite::where('user_id', $user->id)
             ->where('product_id', $data['product_id'])
-            ->where('type', $priceMode)
             ->first();
 
         if (!$favorite) {
@@ -497,13 +481,12 @@ class ProductController extends Controller
         return response()->json([
             'success' => true,
             'message' => __('Property removed from favorites successfully.'),
-            'data' => $favorite->makeHidden(['type']),
+            'data' => $favorite,
         ]);
     }
 
     public function latsetProduct()
     {
-        $priceMode = app('price_mode');
         $page = request('page', 1);
         $locale = app()->getLocale();
         $now = now();
@@ -524,7 +507,6 @@ class ProductController extends Controller
             },
             'brand',
         ])
-            ->where('type', $priceMode)
             ->where('created_at', '>=', $dateLimit)
             ->whereHas('variants', function ($q) use ($priceColumn) {
                 $q->whereNotNull($priceColumn)->where($priceColumn, '>', 0);

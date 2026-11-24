@@ -18,7 +18,6 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained("products")->cascadeOnDelete();
             $table->integer('quantity');
             $table->decimal('price', 10, 2); // السعر النهائي بعد العروض
-            $table->enum('sale_type', ['retail','wholesale'])->default('retail');
             $table->timestamps();
             $table->unique([ 'product_id','order_id']);
         });

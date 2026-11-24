@@ -15,38 +15,26 @@ class Property extends Model
         'price',
         'main_image',
         'images',
-        'min_quantity',
         'stock'
     ];
 
-    protected $appends = ['price', 'image_path',
-        'images_path'];
+    protected $appends = [
+        'image_path',
+        'images_path',
+    ];
 
-    protected $hidden = ['retail_price', 'wholesale_price', 'main_image', 'images'];
+    protected $hidden = ['main_image', 'images'];
 
     protected $casts = [
         'images' => 'array',
-        'min_quantity' => 'integer',
+        'price' => 'float',
         'stock' => 'integer',
     ];
 
     protected static function booted()
     {
         $autoDelete = function ($property) {
-            // Ensure product is loaded to check type (crucial for checkout/decrement)
-            if (!$property->relationLoaded('product')) {
-                $property->load('product');
-            }
-
-            if (!$property->product)
-                return;
-
-            $type = $property->product->type;
-            $minQty = $property->min_quantity ?? 1;
-
-            if ($type === 'retail' && $property->stock <= 0) {
-                $property->delete();
-            } elseif ($type === 'wholesale' && $property->stock < $minQty) {
+            if ($property->stock <= 0) {
                 $property->delete();
             }
         };
@@ -68,17 +56,6 @@ class Property extends Model
     public function favorites()
     {
         return $this->hasMany(Favorite::class);
-    }
-
-    public function getPriceAttribute()
-    {
-        $mode = app()->has('price_mode') ? app('price_mode') : 'wholesale';
-
-        $price = $mode === 'wholesale'
-            ? ($this->wholesale_price ?? $this->attributes['price'] ?? $this->retail_price ?? 0)
-            : ($this->retail_price ?? $this->attributes['price'] ?? $this->wholesale_price ?? 0);
-
-        return $price ?: ($this->attributes['price'] ?? 0);
     }
 
     public function getImagePathAttribute()
@@ -114,13 +91,13 @@ class Property extends Model
 
     public function cart()
     {
-        return $this->belongsToMany(Cart::class, 'cart_items')->withPivot('quantity', 'line_total', 'unit_price', 'sale_type')->withTimestamps();
+        return $this->belongsToMany(Cart::class, 'cart_items')->withPivot('quantity', 'line_total', 'unit_price')->withTimestamps();
     }
 
     public function orders()
     {
         return $this
             ->belongsToMany(Order::class, 'orders_items', 'property_id', 'order_id')
-            ->withPivot(['quantity', 'price', 'sale_type']);
+            ->withPivot(['quantity', 'price']);
     }
 }

@@ -146,9 +146,8 @@ class ProductsController extends Controller
         $product = Product::with(['variants.variantAttributes', 'categories'])->findOrFail($id);
         $attributes = AttributeDefinition::with('values')->get();
 
-        // إظهار الحقول المخفية عشان الـ JS يشوفها (السعر والمواصفات)
+        // إظهار الحقول المخفية عشان الـ JS يشوفها (المواصفات)
         $product->variants->each(function ($variant) {
-            $variant->makeVisible(['retail_price', 'wholesale_price']);
             $variant->variantAttributes->each->makeVisible(['key_en', 'key_ar', 'value_en', 'value_ar']);
         });
 

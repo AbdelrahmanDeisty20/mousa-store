@@ -118,7 +118,7 @@
                                         <span class="text-danger error-desc_ar text-xs"></span>
                                     </div>
 
-                                    <div class="col-md-4 mb-4">
+                                    <div class="col-md-6 mb-4">
                                         <div class="input-group input-group-static">
                                             <label class="d-flex align-items-center">
                                                 {{ __('Categories') }}
@@ -133,7 +133,7 @@
                                         </div>
                                         <span class="text-danger error-category_id text-xs"></span>
                                     </div>
-                                    <div class="col-md-4 mb-4">
+                                    <div class="col-md-6 mb-4">
                                         <div class="input-group input-group-static">
                                             <label class="d-flex align-items-center">
                                                 {{ __('Brands') }}
@@ -147,20 +147,6 @@
                                             <input type="hidden" name="brand_id" value="{{ $product->brand_id }}">
                                         </div>
                                         <span class="text-danger error-brand_id text-xs"></span>
-                                    </div>
-                                    <div class="col-md-4 mb-4">
-                                        <div class="input-group input-group-static">
-                                            <label class="d-flex align-items-center">
-                                                {{ __('Product Type') }}
-                                                <i class="material-icons text-xs ms-1 text-secondary" title="{{ __('This field cannot be changed after creation') }}">lock</i>
-                                            </label>
-                                            <select name="type_disabled" id="product_type_disabled" class="form-control" disabled>
-                                                <option value="retail" {{ $product->type == 'retail' ? 'selected' : '' }}>{{ __('Retail (قطاعي)') }}</option>
-                                                <option value="wholesale" {{ $product->type == 'wholesale' ? 'selected' : '' }}>{{ __('Wholesale (جملة)') }}</option>
-                                            </select>
-                                            <input type="hidden" name="type" id="product_type" value="{{ $product->type }}">
-                                        </div>
-                                        <span class="text-danger error-type text-xs"></span>
                                     </div>
                                 </div>
                             </div>
@@ -217,7 +203,6 @@
                 let variantCount = 0;
 
                 function getVariantHtml(index, data = null) {
-                    const isWholesale = $('#product_type').val() === 'wholesale';
                     return `
                     <div class="variant-card" data-index="${index}">
                         <input type="hidden" name="variants[${index}][id]" value="${data ? data.id : ''}">
@@ -233,26 +218,12 @@
                             ` : ''}
                         </div>
                         <div class="row">
-                            <div class="col-md-4 mb-4 retail-field" style="${isWholesale ? 'display:none;' : ''}">
+                            <div class="col-md-4 mb-4">
                                 <div class="input-group input-group-static">
-                                    <label class="font-weight-bold">{{ __('Retail Price') }}</label>
-                                    <input type="number" step="0.01" name="variants[${index}][retail_price]" class="form-control" value="${data ? data.retail_price : ''}">
+                                    <label class="font-weight-bold">{{ __('Price') }}</label>
+                                    <input type="number" step="0.01" name="variants[${index}][price]" class="form-control" value="${data ? (data.price ?? '') : ''}">
                                 </div>
-                                <span class="text-danger error-variants-${index}-retail_price text-xxs"></span>
-                            </div>
-                            <div class="col-md-3 mb-4 wholesale-field" style="${!isWholesale ? 'display:none;' : ''}">
-                                <div class="input-group input-group-static">
-                                    <label class="font-weight-bold">{{ __('Wholesale Price') }}</label>
-                                    <input type="number" step="0.01" name="variants[${index}][wholesale_price]" class="form-control" value="${data ? data.wholesale_price : ''}">
-                                </div>
-                                <span class="text-danger error-variants-${index}-wholesale_price text-xxs"></span>
-                            </div>
-                            <div class="col-md-3 mb-4 wholesale-field" style="${!isWholesale ? 'display:none;' : ''}">
-                                <div class="input-group input-group-static">
-                                    <label class="font-weight-bold">{{ __('Min Quantity') }}</label>
-                                    <input type="number" name="variants[${index}][min_quantity]" class="form-control" value="${data ? data.min_quantity : '1'}">
-                                </div>
-                                <span class="text-danger error-variants-${index}-min_quantity text-xxs"></span>
+                                <span class="text-danger error-variants-${index}-price text-xxs"></span>
                             </div>
                             <div class="col-md-4 mb-4">
                                 <div class="input-group input-group-static">
@@ -457,12 +428,6 @@
                     let selected = $(this).find('option:selected');
                     row.find('.value-en').val(selected.data('en') || '');
                     row.find('.value-ar').val(selected.data('ar') || '');
-                });
-
-                $('#product_type').change(function() {
-                    let isWholesale = $(this).val() === 'wholesale';
-                    if (isWholesale) { $('.retail-field').hide(); $('.wholesale-field').show(); }
-                    else { $('.retail-field').show(); $('.wholesale-field').hide(); }
                 });
 
                 $('#updateProductForm').on('submit', function (e) {

@@ -168,8 +168,6 @@
                     <div class="col-lg-8">
                         <div class="mb-2">
                             <span class="text-xs font-weight-bolder text-info text-uppercase letter-spacing-1">{{ $product->brand->name ?? __('Mousa Store Genuine') }}</span>
-                            <span class="mx-2 text-secondary opacity-3">|</span>
-                            <span class="text-xs font-weight-bolder text-secondary text-uppercase">{{ $product->type }}</span>
                         </div>
                         <h2 class="font-weight-black text-dark mb-3">{{ $product->name }}</h2>
                         <div class="mb-4">
@@ -274,14 +272,9 @@
                                         <div class="price-tag-v3">
                                             <div class="text-xxs font-weight-black text-uppercase opacity-7 mb-1">{{ __('Price') }}</div>
                                             <div class="h3 font-weight-black mb-0">
-                                                {{ number_format($product->type == 'retail' ? $variant->retail_price : $variant->wholesale_price, 2) }}
+                                                {{ number_format($variant->price ?? 0, 2) }}
                                                 <small class="text-xs">{{ __('EGP') }}</small>
                                             </div>
-                                            @if($product->type == 'wholesale')
-                                                <div class="text-xxs font-weight-black text-uppercase mt-1 text-info">
-                                                    {{ __('Minimum Order') }}: {{ $variant->min_quantity }}
-                                                </div>
-                                            @endif
                                         </div>
 
                                         <div class="stock-indicator mt-4 ms-auto" style="width: fit-content;">

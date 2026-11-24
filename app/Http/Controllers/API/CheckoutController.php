@@ -15,11 +15,10 @@ class CheckoutController extends Controller
     {
         $data = $request->validated();
         $user = Auth::user();
-        $priceMode = app('price_mode');  // retail | wholesale
 
         // جلب السلة النشطة + المنتجات والمواصفات والعروض
-        $cart = Cart::with(['items' => function ($q) use ($priceMode) {
-            $q->withTrashed()->where('sale_type', $priceMode)->with(['offers', 'product', 'variantAttributes']);
+        $cart = Cart::with(['items' => function ($q) {
+            $q->withTrashed()->with(['offers', 'product', 'variantAttributes']);
         }])
             ->where('user_id', $user->id)
             ->where('status', 'active')
@@ -56,24 +55,17 @@ class CheckoutController extends Controller
 
         foreach ($cart->items as $item) {
             // السعر الأساسي
-            $originalPrice = $item->price ?? ($priceMode === 'wholesale'
-                ? ($item->wholesale_price ?? $item->retail_price ?? 0)
-                : ($item->retail_price ?? $item->wholesale_price ?? 0));
+            $originalPrice = $item->price ?? 0;
 
             // حساب السعر بعد العرض
             $discountedPrice = $originalPrice;
             $offer = $item->offers->where('start', '<=', $now)->where('end', '>=', $now)->first();
 
             if ($offer) {
-                $discountPercent = 0;
-                if ($priceMode === 'wholesale' && $offer->discount_wholesale > 0) {
-                    $discountPercent = $offer->discount_wholesale;
-                } elseif ($priceMode === 'retail' && $offer->discount_retail > 0) {
-                    $discountPercent = $offer->discount_retail;
-                } elseif ($offer->discount && $offer->discount > 0) {
-                    $discountPercent = $offer->discount;
+                $discountPercent = $offer->discount_price ?? $offer->discount ?? 0;
+                if ($discountPercent > 0) {
+                    $discountedPrice = round($originalPrice * (1 - $discountPercent / 100), 2);
                 }
-                $discountedPrice = round($originalPrice * (1 - $discountPercent / 100), 2);
             }
 
             // Check stock
@@ -82,14 +74,6 @@ class CheckoutController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => __('The product :name (:attributes) is out of stock', ['name' => $item->product->name, 'attributes' => $attributes]),
-                ], 200);
-            }
-
-            if ($priceMode === 'wholesale' && $item->pivot->quantity < $item->min_quantity) {
-                $attributes = $item->variantAttributes->map(fn($attr) => $attr->value)->implode(' - ');
-                return response()->json([
-                    'success' => true,
-                    'message' => __('The product :name (:attributes) does not meet the minimum quantity for wholesale', ['name' => $item->product->name, 'attributes' => $attributes]),
                 ], 200);
             }
 
@@ -103,7 +87,7 @@ class CheckoutController extends Controller
 
         if (empty($productsToAdd)) {
             return response()->json([
-                'message' => 'No products meet the requirements for this sale type.'
+                'message' => 'No products available in cart.'
             ], 200);
         }
 
@@ -130,17 +114,15 @@ class CheckoutController extends Controller
                     $product['id'] => [
                         'quantity' => $product['quantity'],
                         'price' => $product['price'],
-                        'sale_type' => $priceMode,
                     ]
                 ]);
 
                 Property::withTrashed()->find($product['id'])->decrement('stock', $product['quantity']);
             }
 
-            // حذف المنتجات من السلة حسب نوع البيع
+            // حذف المنتجات من السلة
             DB::table('cart_items')
                 ->where('cart_id', $cart->id)
-                ->where('sale_type', $priceMode)
                 ->delete();
 
             DB::commit();

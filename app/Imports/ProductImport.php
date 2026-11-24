@@ -84,13 +84,11 @@ class ProductImport implements ToCollection, WithHeadingRow
                 }
             }
 
-            // 3. Find or Create Product (Matched by Name AND Type)
+            // 3. Find or Create Product (Matched by Name)
             $productNameAr = $row['product_name_ar'];
             $productNameEn = $row['product_name_en'];
-            $type = strtolower($row['type'] ?? 'retail');
 
-            $product = Product::where('type', $type)
-                ->where(function ($q) use ($productNameAr, $productNameEn) {
+            $product = Product::where(function ($q) use ($productNameAr, $productNameEn) {
                     if ($productNameAr)
                         $q->whereRaw('LOWER(name_ar) = ?', [strtolower($productNameAr)]);
                     if ($productNameEn)
@@ -103,7 +101,6 @@ class ProductImport implements ToCollection, WithHeadingRow
                     'desc_ar' => $row['description_ar'] ?? $product->desc_ar,
                     'desc_en' => $row['description_en'] ?? $product->desc_en,
                     'brand_id' => $brand ? $brand->id : $product->brand_id,
-                    'type' => $type,
                 ]);
             } else {
                 $product = Product::create([
@@ -112,7 +109,6 @@ class ProductImport implements ToCollection, WithHeadingRow
                     'desc_ar' => $row['description_ar'] ?? '',
                     'desc_en' => $row['description_en'] ?? '',
                     'brand_id' => $brand ? $brand->id : null,
-                    'type' => $type,
                 ]);
             }
 
@@ -121,41 +117,23 @@ class ProductImport implements ToCollection, WithHeadingRow
             }
 
             // 4. Create Product Variant (Property)
-            $price = $row['price'] ?? null;
-
-            $wholesale_price = $row['wholesale_price'] ?? 0;
-            $retail_price = $row['retail_price'] ?? 0;
-
-            if ($price !== null) {
-                if ($type === 'wholesale') {
-                    $wholesale_price = $price;
-                    if (!isset($row['retail_price']))
-                        $retail_price = 0;
-                } else {
-                    $retail_price = $price;
-                    if (!isset($row['wholesale_price']))
-                        $wholesale_price = 0;
-                }
-            }
+            $price = (float) ($row['price'] ?? $row['retail_price'] ?? $row['wholesale_price'] ?? 0);
             $stock = $row['stock'] ?? 0;
 
             // Identity of the variant
             $currentConfig = [
                 'product_id' => $product->id,
-                'wholesale_price' => (float) $wholesale_price,
-                'retail_price' => (float) $retail_price,
+                'price' => $price,
             ];
 
-            // Match logic (Smart match: if current row is repeats product/prices, merge)
+            // Match logic (Smart match: if current row repeats product/price, merge)
             if ($this->lastProperty && $this->lastPropertyConfig === $currentConfig) {
                 $property = $this->lastProperty;
             } else {
                 $property = new Property([
                     'product_id' => $product->id,
-                    'wholesale_price' => $wholesale_price,
-                    'retail_price' => $retail_price,
+                    'price' => $price,
                     'stock' => $stock ?: 1,  // Default to 1 to avoid auto-delete
-                    'min_quantity' => $row['min_quantity'] ?? 1,
                     'main_image' => $row['main_image_url'] ?? null,
                     'images' => !empty($row['other_images_urls']) ? explode(',', $row['other_images_urls']) : [],
                 ]);

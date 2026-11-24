@@ -88,27 +88,15 @@
 
 
                                                 <td class="text-center">
-                                                    @if($offer->variant && $offer->variant->product)
-                                                        @if($offer->variant->product->type === 'retail')
-                                                            {{ $offer->variant->retail_price }} {{ __('EGP') }} ({{ __('Retail') }})
-                                                        @else
-                                                            {{ $offer->variant->wholesale_price }} {{ __('EGP') }} ({{ __('Wholesale') }})
-                                                        @endif
+                                                    @if($offer->variant)
+                                                        {{ $offer->variant->price }} {{ __('EGP') }}
                                                     @else
                                                         -
                                                     @endif
                                                 </td>
 
                                                 <td class="text-center">
-                                                    @if($offer->variant && $offer->variant->product)
-                                                        @if($offer->variant->product->type === 'retail')
-                                                            {{ $offer->discount_retail }}%
-                                                        @else
-                                                            {{ $offer->discount_wholesale }}%
-                                                        @endif
-                                                    @else
-                                                        -
-                                                    @endif
+                                                    {{ $offer->discount_price ?? $offer->discount ?? 0 }}%
                                                 </td>
 
                                                 <td class="text-center">

@@ -84,13 +84,9 @@
                         </div>
                         <div class="card-body p-3">
                             <div class="row mb-4">
-                                <div class="col-sm-6">
+                                <div class="col-sm-12">
                                     <p class="text-xs font-weight-bold mb-0">{{ __('Order Date') }}:</p>
                                     <p class="text-sm">{{ $order->created_at->format('M d, Y h:i A') }}</p>
-                                </div>
-                                <div class="col-sm-6">
-                                    <p class="text-xs font-weight-bold mb-0">{{ __('Order Type') }}:</p>
-                                    <span class="badge badge-sm bg-gradient-{{ $order->type == 'wholesale' ? 'warning' : 'info' }}">{{ strtoupper($order->type) }}</span>
                                 </div>
                             </div>
 

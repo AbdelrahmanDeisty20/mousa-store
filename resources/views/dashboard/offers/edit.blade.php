@@ -32,9 +32,7 @@
                                         <option value="">{{ __('-- Select Product Variant --') }}</option>
                                         @foreach ($properties as $property)
                                             <option value="{{ $property->id }}"
-                                                data-type="{{ $property->product->type ?? 'retail' }}"
-                                                data-retail="{{ $property->retail_price }}"
-                                                data-wholesale="{{ $property->wholesale_price }}"
+                                                data-price="{{ $property->price }}"
                                                 {{ $offer->property_id == $property->id ? 'selected' : '' }}>
                                                 {{ $property->product->name_en ?? 'N/A' }}
                                                 @if($property->variantAttributes && $property->variantAttributes->count() > 0)
@@ -44,28 +42,19 @@
                                                     @endforeach
                                                     )
                                                 @endif
-                                                - [{{ $property->product->type ?? 'N/A' }}]
                                             </option>
                                         @endforeach
                                     </select>
                                     <span class="text-danger error-property_id"></span>
                                 </div>
 
-                                {{-- Discounts --}}
-                                <div class="mb-3 col-md-3" id="retail_discount_container">
-                                    <label class="form-label">{{ __('Retail Discount (%)') }} <span id="retail_info" class="text-xs text-primary"></span></label>
-                                    <input type="number" name="discount_retail"
+                                {{-- Discount --}}
+                                <div class="mb-3 col-md-6" id="discount_container">
+                                    <label class="form-label">{{ __('Discount (%)') }} <span id="price_info" class="text-xs text-primary"></span></label>
+                                    <input type="number" step="0.01" name="discount_price"
                                            class="form-control border border-2 p-2"
-                                           value="{{ old('discount_retail', $offer->discount_retail) }}">
-                                    <span class="text-danger error-discount_retail"></span>
-                                </div>
-
-                                <div class="mb-3 col-md-3" id="wholesale_discount_container">
-                                    <label class="form-label">{{ __('Wholesale Discount (%)') }} <span id="wholesale_info" class="text-xs text-primary"></span></label>
-                                    <input type="number" name="discount_wholesale"
-                                           class="form-control border border-2 p-2"
-                                           value="{{ old('discount_wholesale', $offer->discount_wholesale) }}">
-                                    <span class="text-danger error-discount_wholesale"></span>
+                                           value="{{ old('discount_price', $offer->discount_price ?? $offer->discount) }}">
+                                    <span class="text-danger error-discount_price"></span>
                                 </div>
 
                                 {{-- Dates --}}
@@ -106,45 +95,34 @@
 
         <script>
             $(document).ready(function () {
-                function toggleDiscountFields() {
+                function updatePriceInfo() {
                     let selected = $('select[name="property_id"] option:selected');
-                    let type = selected.data('type');
-                    let retail = selected.data('retail');
-                    let wholesale = selected.data('wholesale');
+                    let price = selected.data('price');
 
-                    if (type === 'retail') {
-                        $('#retail_discount_container').show();
-                        $('#wholesale_discount_container').hide();
-                        $('#retail_info').text('({{ __('Price') }}: ' + retail + ' {{ __('EGP') }})');
-                        $('#wholesale_info').text('');
-                    } else if (type === 'wholesale') {
-                        $('#retail_discount_container').hide();
-                        $('#wholesale_discount_container').show();
-                        $('#retail_info').text('');
-                        $('#wholesale_info').text('({{ __('Price') }}: ' + wholesale + ' {{ __('EGP') }})');
-
+                    if (price !== undefined && price !== '') {
+                        $('#price_info').text('({{ __('Price') }}: ' + price + ' {{ __('EGP') }})');
                     } else {
-                        $('#retail_discount_container').hide();
-                        $('#wholesale_discount_container').hide();
+                        $('#price_info').text('');
                     }
                 }
 
-                $('select[name="property_id"]').on('change', toggleDiscountFields);
-                toggleDiscountFields();
+                $('select[name="property_id"]').on('change', updatePriceInfo);
+                updatePriceInfo();
 
                 $("#updateOfferForm").validate({
                     errorElement: "span",
                     rules: {
                         property_id: { required: true },
-                        discount_retail: { number: true },
-                        discount_wholesale: { number: true },
+                        discount_price: { required: true, number: true },
                         start: { required: true },
                         end: { required: true }
                     },
                     messages: {
                         property_id: "{{ __('Product variant is required') }}",
-                        discount_retail: "{{ __('Must be a number') }}",
-                        discount_wholesale: "{{ __('Must be a number') }}",
+                        discount_price: {
+                            required: "{{ __('Discount is required') }}",
+                            number: "{{ __('Must be a number') }}"
+                        },
                         start: "{{ __('Start date is required') }}",
                         end: "{{ __('End date is required') }}"
                     },

@@ -28,11 +28,8 @@ return new class extends Migration
             if (!Schema::hasColumn('offers', 'property_id')) {
                 $table->unsignedBigInteger('property_id')->nullable()->after('id');
             }
-            if (!Schema::hasColumn('offers', 'discount_retail')) {
-                $table->decimal('discount_retail', 8, 2)->nullable()->after('property_id');
-            }
-            if (!Schema::hasColumn('offers', 'discount_wholesale')) {
-                $table->decimal('discount_wholesale', 8, 2)->nullable()->after('discount_retail');
+            if (!Schema::hasColumn('offers', 'discount_price')) {
+                $table->decimal('discount_price', 8, 2)->nullable()->after('property_id');
             }
         });
 

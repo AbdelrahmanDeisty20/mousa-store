@@ -79,7 +79,7 @@
                                                 <div class="bg-gray-100 p-3 border-radius-lg">
                                                     <h6 class="text-sm font-weight-bold mb-2"><i class="material-icons text-sm me-1 text-info">info</i> {{ __('How it works:') }}</h6>
                                                     <ul class="text-xs mb-0 ps-3">
-                                                        <li>{{ __('Type "retail" or "wholesale" in the "type" column.') }}</li>
+                                                        <li>{{ __('Specify the product price in the "price" column.') }}</li>
                                                         <li>{{ __('Use full URLs for images, or just filenames if providing a ZIP.') }}</li>
                                                         <li>{{ __('Multiple images can be separated by commas in the images column.') }}</li>
                                                     </ul>
@@ -129,7 +129,6 @@
                                                     <div class="d-flex px-2 py-1">
                                                         <div class="d-flex flex-column justify-content-center">
                                                             <h6 class="mb-0 text-sm">{{ $product->name }}</h6>
-                                                            <p class="text-xxs text-secondary mb-0 text-uppercase font-weight-bold">{{ $product->type }}</p>
                                                         </div>
                                                     </div>
                                                 </td>

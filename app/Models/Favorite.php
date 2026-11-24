@@ -12,7 +12,6 @@ class Favorite extends Model
         "user_id",
         "product_id",
         'is_favorite',
-        "type"
     ];
     public function user()
     {
