@@ -49,7 +49,8 @@ class HomeController extends Controller
                 $service->sendToToken(
                     $token,
                     $request->title,
-                    $request->body
+                    $request->body,
+                    ['type' => 'broadcast']
                 );
             } catch (\Throwable $e) {
                 // تجاهل
@@ -281,7 +282,8 @@ class HomeController extends Controller
                     $service->sendToToken(
                         $token->fcm_token,
                         $request->title,
-                        $request->body
+                        $request->body,
+                        ['type' => 'registered_users']
                     );
                 } catch (\Throwable $e) {
                     // تجاهل التوكنات البايظة
@@ -329,11 +331,17 @@ class HomeController extends Controller
                 ], 422);
             }
 
-            // إرسال الإشعار فقط بالـ title والـ body
+            $fcmData = is_array($request->input('data')) ? $request->input('data') : [];
+            if ($request->filled('type')) {
+                $fcmData['type'] = $request->input('type');
+            }
+
+            // إرسال الإشعار مع بيانات الـ payload إن وجدت
             $service->sendToToken(
                 $token,
                 $request->title,
-                $request->body
+                $request->body,
+                $fcmData
             );
 
             return response()->json([

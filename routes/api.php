@@ -56,6 +56,7 @@ Route::group(['prefix' => 'v1', 'middleware' => ['lang']], function () {
     Route::get('products/category/{id}', [ProductController::class, 'productsByCategory']);
     Route::get('products/brand/{id}', [ProductController::class, 'productsByBrand']);
     Route::get('latset-product', [ProductController::class, 'latsetProduct']);
+    Route::get('latest-product', [ProductController::class, 'latsetProduct']);
     Route::get('product', [ProductController::class, 'show']);
     Route::get('attributes', [HomeController::class, 'attributes']);
     Route::get('filter/product', [ProductFilterController::class, 'filter']);

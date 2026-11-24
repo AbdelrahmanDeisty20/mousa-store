@@ -83,7 +83,11 @@ class PropertyObserver
 
             // إرسال عبر Firebase
             foreach ($user->fcmTokens as $tokenRecord) {
-                $this->firebaseService->sendToToken($tokenRecord->fcm_token, $title, $body);
+                $this->firebaseService->sendToToken($tokenRecord->fcm_token, $title, $body, [
+                    'type'        => 'product',
+                    'product_id'  => $property->product_id,
+                    'property_id' => $property->id,
+                ]);
             }
         }
     }

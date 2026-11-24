@@ -48,15 +48,14 @@ class OrderObserver
             ]);
 
             // Optional: Firebase notifications if needed for admins
-            if ($admin->relationLoaded('fcmTokens')) {
-                foreach ($admin->fcmTokens as $tokenRecord) {
-                    $this->firebaseService->sendToToken($tokenRecord->fcm_token, $title, $body);
-                }
-            } else {
+            if (! $admin->relationLoaded('fcmTokens')) {
                 $admin->load('fcmTokens');
-                foreach ($admin->fcmTokens as $tokenRecord) {
-                    $this->firebaseService->sendToToken($tokenRecord->fcm_token, $title, $body);
-                }
+            }
+            foreach ($admin->fcmTokens as $tokenRecord) {
+                $this->firebaseService->sendToToken($tokenRecord->fcm_token, $title, $body, [
+                    'type'     => 'order',
+                    'order_id' => $order->id,
+                ]);
             }
         }
     }

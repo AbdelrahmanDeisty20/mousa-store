@@ -67,7 +67,12 @@ class SendOfferCreatedForFavoritesNotification
             $tokens = UserFcmToken::where('user_id', $user->id)->pluck('fcm_token');
             foreach ($tokens as $token) {
                 try {
-                    $this->firebaseService->sendToToken($token, $title, $body);
+                    $this->firebaseService->sendToToken($token, $title, $body, [
+                        'type'        => 'favorite_offer',
+                        'offer_id'    => $offer->id,
+                        'product_id'  => $product->id,
+                        'property_id' => $property->id,
+                    ]);
                 } catch (\Throwable $e) {
                     Log::error("FCM Error (Favorites) for user {$user->id}: " . $e->getMessage());
                 }

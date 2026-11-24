@@ -73,7 +73,12 @@ class SendOfferCreatedForCartItemsNotification
 
     foreach ($userWithTokens->fcmTokens as $token) {
         try {
-            $this->firebaseService->sendToToken($token->fcm_token, $title, $body);
+            $this->firebaseService->sendToToken($token->fcm_token, $title, $body, [
+                'type'        => 'offer',
+                'offer_id'    => $offer->id,
+                'product_id'  => $product->id,
+                'property_id' => $property->id,
+            ]);
         } catch (\Throwable $e) {
             Log::error("FCM Error for user {$user->id}: " . $e->getMessage());
         }

@@ -88,7 +88,11 @@ class OrderController extends Controller
 
             foreach ($tokens as $token) {
                 try {
-                    $service->sendToToken($token, $title, $body);
+                    $service->sendToToken($token, $title, $body, [
+                        'type'     => 'order_status',
+                        'order_id' => $order->id,
+                        'status'   => 'cancelled',
+                    ]);
                 } catch (\Exception $e) {
                     // ignore
                 }
@@ -133,7 +137,11 @@ class OrderController extends Controller
 
             foreach ($tokens as $token) {
                 try {
-                    $service->sendToToken($token, $title, $body);
+                    $service->sendToToken($token, $title, $body, [
+                        'type'     => 'order_status',
+                        'order_id' => $order->id,
+                        'status'   => 'processing',
+                    ]);
                 } catch (\Exception $e) {
                     // تجاهل الأخطاء لتوكنات معينة
                 }

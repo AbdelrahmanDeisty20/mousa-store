@@ -47,7 +47,11 @@ class SendLowStockCartNotification
 
             foreach ($user->fcmTokens as $tokenRecord) {
                 try {
-                    $this->firebaseService->sendToToken($tokenRecord->fcm_token, $title, $body);
+                    $this->firebaseService->sendToToken($tokenRecord->fcm_token, $title, $body, [
+                        'type'        => 'product',
+                        'product_id'  => $property->product_id,
+                        'property_id' => $property->id,
+                    ]);
                 } catch (\Throwable $e) {
                     Log::error("FCM Error (Low Stock Cart): " . $e->getMessage());
                 }

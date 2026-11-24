@@ -22,14 +22,22 @@ class OfferObserver
      */
     public function created(Offer $offer)
     {
+        $offer->loadMissing('variant');
+
         $title = "عرض جديد متاح!";
         $body = "تمت إضافة عرض جديد على أحد منتجاتنا، تفقده الآن!";
+        $data = [
+            'type'        => 'offer',
+            'offer_id'    => $offer->id,
+            'product_id'  => $offer->variant?->product_id,
+            'property_id' => $offer->property_id,
+        ];
 
         // جلب جميع التوكنز المسجلة (بما فيها التي ليس لها user_id)
         $tokens = UserFcmToken::pluck('fcm_token')->unique();
 
         foreach ($tokens as $token) {
-            $this->firebaseService->sendToToken($token, $title, $body);
+            $this->firebaseService->sendToToken($token, $title, $body, $data);
         }
     }
 }
