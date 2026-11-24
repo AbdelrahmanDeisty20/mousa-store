@@ -72,7 +72,7 @@ class DummyDataSeeder extends Seeder
         $this->command->info("Starting comprehensive store data seeding...");
 
         // Disable foreign key checks for clean truncation
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        Schema::disableForeignKeyConstraints();
         Offer::truncate();
         Attribute::truncate();
         Property::truncate();
@@ -84,7 +84,7 @@ class DummyDataSeeder extends Seeder
         Category::truncate();
         Banner::truncate();
         ProductBanner::truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        Schema::enableForeignKeyConstraints();
 
         // 1. SEED BANNERS
         $this->command->info("\n--- Seeding Hero Banners ---");
@@ -470,7 +470,12 @@ class DummyDataSeeder extends Seeder
             $product = Product::create($productData);
 
             if ($catObj && Schema::hasTable('category_product')) {
-                $product->categories()->attach($catObj->id);
+                DB::table('category_product')->insert([
+                    'product_id' => $product->id,
+                    'category_id' => $catObj->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
             }
 
             // Create Property (Variant)
