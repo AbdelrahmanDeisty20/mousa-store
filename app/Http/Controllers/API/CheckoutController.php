@@ -45,7 +45,7 @@ class CheckoutController extends Controller
             }
         }
 
-        $settings = Setting::first();
+        $settings = Setting::where('governorate_id', $data['governorate_id'])->first() ?? Setting::first();
         $taxRate = $settings->tax ?? 0;
         $shipping = $settings->shipping ?? 0;
 

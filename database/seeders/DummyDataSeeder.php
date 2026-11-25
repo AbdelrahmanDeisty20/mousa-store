@@ -730,6 +730,8 @@ class DummyDataSeeder extends Seeder
             }
         }
 
+        $this->call(GovernorateSeeder::class);
+
         $this->command->info("\n========================================================");
         $this->command->info("🎉 MOUSA STORE SPORTSWEAR SEEDING COMPLETED SUCCESSFULLY!");
         $this->command->info("Products: " . count($createdProducts) . " | Variants: {$totalVariants} | Reviews: {$totalReviews}");
