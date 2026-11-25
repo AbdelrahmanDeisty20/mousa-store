@@ -73,3 +73,9 @@ Artisan::command('test:filter', function () {
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+Schedule::call(function () {
+    Artisan::call('queue:work', [
+        '--stop-when-empty' => true,
+        '--max-time' => 50,
+    ]);
+})->name('queue-worker')->everyMinute()->withoutOverlapping();
