@@ -76,6 +76,11 @@ Route::group(['prefix' => 'v1', 'middleware' => ['lang']], function () {
         Route::post('add-product', [CartController::class, 'create']);
         // Route::post('reviews', [ReviewController::class, 'index']);
         Route::post('reviews/create', [ReviewController::class, 'store']);
+        Route::get('my-reviews', [ReviewController::class, 'myReviews']);
+        Route::match(['put', 'patch'], 'review/update', [ReviewController::class, 'update']);
+        Route::match(['put', 'patch'], 'review/update/{id}', [ReviewController::class, 'update']);
+        Route::delete('review/delete', [ReviewController::class, 'destroy']);
+        Route::delete('review/delete/{id}', [ReviewController::class, 'destroy']);
         Route::post('checkouts', [CheckoutController::class, 'checkout']);
         Route::post('addFavorite', [ProductController::class, 'addFavorite']);
         Route::post('removeFavorite', [ProductController::class, 'removeFavorite']);

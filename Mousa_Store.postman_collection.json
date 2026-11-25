@@ -1,0 +1,1467 @@
+{
+  "info": {
+    "_postman_id": "a7f2b9d4-6e3a-4c9b-9c2d-7b1f4c8a2d01",
+    "name": "Mousa Store API",
+    "description": "Postman Collection for Mousa Store Laravel API (unified single-price & variants architecture).\n\nBase URL: https://mousa-store.fourthpyramidagcy.com\n\nAuto-variables:\n- Register / Login / Refresh automatically update {{token}} and {{refresh_token}}.\n- Forgot Password verify code automatically updates {{reset_token}}.\n- Change {{lang}} between \"ar\" and \"en\" to switch Accept-Language.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://mousa-store.fourthpyramidagcy.com",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "reset_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lang",
+      "value": "ar",
+      "type": "string"
+    },
+    {
+      "key": "category_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "brand_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "product_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "property_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "address_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "governorate_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "review_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth & Profile",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "    pm.collectionVariables.set('token', res.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Ahmed\",\n  \"last_name\": \"Mousa\",\n  \"email\": \"user@example.com\",\n  \"phone\": \"01012345678\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "register"]
+            }
+          }
+        },
+        {
+          "name": "Verify Email OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"otp\": 123456\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/verify-otp",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "verify-otp"]
+            }
+          }
+        },
+        {
+          "name": "Resend Email OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/resend-otp",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "resend-otp"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "    pm.collectionVariables.set('token', res.token);",
+                  "}",
+                  "if (res.refresh_token) {",
+                  "    pm.collectionVariables.set('refresh_token', res.refresh_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "login"]
+            },
+            "description": "Optional fields: fcm_token, device_type"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.access_token) {",
+                  "    pm.collectionVariables.set('token', res.access_token);",
+                  "}",
+                  "if (res.refresh_token) {",
+                  "    pm.collectionVariables.set('refresh_token', res.refresh_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "refresh"]
+            }
+          }
+        },
+        {
+          "name": "Social Login (Google)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "    pm.collectionVariables.set('token', res.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"access_token\": \"GOOGLE_OAUTH_ACCESS_TOKEN\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/social-login/google",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "social-login", "google"]
+            }
+          }
+        },
+        {
+          "name": "Social Register (Google)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"access_token\": \"GOOGLE_OAUTH_ACCESS_TOKEN\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/social-register/google",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "social-register", "google"]
+            }
+          }
+        },
+        {
+          "name": "Get Authenticated User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/user",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Ahmed\",\n  \"last_name\": \"Mousa\",\n  \"phone\": \"01012345678\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/update-profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "update-profile"]
+            },
+            "description": "All fields are nullable. Include email, current_password, password, password_confirmation when updating email or password."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Forgot Password (v1 & v2)",
+      "item": [
+        {
+          "name": "v1 Send Reset Email OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sendEmail",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sendEmail"]
+            }
+          }
+        },
+        {
+          "name": "v1 Verify Reset Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.reset_token) {",
+                  "    pm.collectionVariables.set('reset_token', res.reset_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"otp\": 123456\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/sendCode",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sendCode"]
+            }
+          }
+        },
+        {
+          "name": "v1 Resend Reset OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/forgotPassword/resend-otp",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "forgotPassword", "resend-otp"]
+            }
+          }
+        },
+        {
+          "name": "v1 Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"newpassword123\",\n  \"password_confirmation\": \"newpassword123\",\n  \"reset_token\": \"{{reset_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "password"]
+            }
+          }
+        },
+        {
+          "name": "v2 Send Reset Email OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/sendEmail",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "sendEmail"]
+            }
+          }
+        },
+        {
+          "name": "v2 Verify Reset Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.reset_token) {",
+                  "    pm.collectionVariables.set('reset_token', res.reset_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"otp\": 123456\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/sendCode",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "sendCode"]
+            }
+          }
+        },
+        {
+          "name": "v2 Resend Reset OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/forgotPassword/resend-otp",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "forgotPassword", "resend-otp"]
+            }
+          }
+        },
+        {
+          "name": "v2 Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"newpassword123\",\n  \"password_confirmation\": \"newpassword123\",\n  \"reset_token\": \"{{reset_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v2/password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v2", "password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Home & Catalog",
+      "item": [
+        {
+          "name": "Get Hero Banners",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/banners",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "banners"]
+            }
+          }
+        },
+        {
+          "name": "Get Product Ad Banners",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/banners-product",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "banners-product"]
+            }
+          }
+        },
+        {
+          "name": "Get Categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Get Sub-Categories / Tree",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/categories/{{category_id}}/Tree",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "categories", "{{category_id}}", "Tree"]
+            },
+            "description": "Aliases: /api/v1/category/{{category_id}} and /api/v1/categories/{{category_id}}"
+          }
+        },
+        {
+          "name": "Get Brands",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/brands",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "brands"]
+            }
+          }
+        },
+        {
+          "name": "Show Brand",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "brands", "{{brand_id}}"]
+            },
+            "description": "Alias: /api/v1/brand/{{brand_id}}"
+          }
+        },
+        {
+          "name": "Get Governorates",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/governorates",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "governorates"]
+            }
+          }
+        },
+        {
+          "name": "Get Shipping Rates",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/shippings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "shippings"]
+            }
+          }
+        },
+        {
+          "name": "Get Contacts",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/contacts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "contacts"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products, Offers & Search",
+      "item": [
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "products"],
+              "query": [
+                { "key": "page", "value": "1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Products by Category",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/category/{{category_id}}?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "products", "category", "{{category_id}}"],
+              "query": [
+                { "key": "page", "value": "1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Products by Brand",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/products/brand/{{brand_id}}?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "products", "brand", "{{brand_id}}"],
+              "query": [
+                { "key": "page", "value": "1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Latest Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/latest-product?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "latest-product"],
+              "query": [
+                { "key": "page", "value": "1" }
+              ]
+            },
+            "description": "Legacy misspelled alias /api/v1/latset-product also remains supported."
+          }
+        },
+        {
+          "name": "Latest Products (Legacy Alias)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/latset-product?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "latset-product"],
+              "query": [
+                { "key": "page", "value": "1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Show Product Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/product?product_id={{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "product"],
+              "query": [
+                { "key": "product_id", "value": "{{product_id}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Active Offers",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/offers?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "offers"],
+              "query": [
+                { "key": "page", "value": "1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Filter Metadata (Attributes, Brands, Price Range)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/attributes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "attributes"]
+            }
+          }
+        },
+        {
+          "name": "Filter Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/filter/product?sort=latest&page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "filter", "product"],
+              "query": [
+                { "key": "category_id", "value": "{{category_id}}", "disabled": true },
+                { "key": "brand_id", "value": "{{brand_id}}", "disabled": true },
+                { "key": "min_price", "value": "100", "disabled": true },
+                { "key": "max_price", "value": "5000", "disabled": true },
+                { "key": "attribute_ids[]", "value": "1", "disabled": true },
+                { "key": "sort", "value": "latest", "description": "Allowed: popular, a_z, z_a, low_high, high_low, latest, offers" },
+                { "key": "page", "value": "1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Products",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/search?search=iphone&page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "search"],
+              "query": [
+                { "key": "search", "value": "iphone" },
+                { "key": "page", "value": "1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Product Reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/reviews?product_id={{product_id}}&page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "reviews"],
+              "query": [
+                { "key": "product_id", "value": "{{product_id}}" },
+                { "key": "page", "value": "1" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cart",
+      "auth": {
+        "type": "bearer",
+        "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+      },
+      "item": [
+        {
+          "name": "Get Active Cart",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/carts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "carts"]
+            }
+          }
+        },
+        {
+          "name": "Add Item to Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"property_id\": {{property_id}},\n  \"quantity\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/carts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "carts"]
+            }
+          }
+        },
+        {
+          "name": "Update Cart Item Quantity",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/carts/{{property_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "carts", "{{property_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Remove Cart Item",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/carts/{{property_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "carts", "{{property_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Favorites & Reviews",
+      "auth": {
+        "type": "bearer",
+        "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+      },
+      "item": [
+        {
+          "name": "Get Favorites",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/favorites?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "favorites"],
+              "query": [
+                { "key": "page", "value": "1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add to Favorites",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{product_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/addFavorite",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "addFavorite"]
+            }
+          }
+        },
+        {
+          "name": "Remove from Favorites",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{product_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/removeFavorite",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "removeFavorite"]
+            }
+          }
+        },
+        {
+          "name": "Create Review",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) {",
+                  "    pm.collectionVariables.set('review_id', String(res.data.id));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"product_id\": {{product_id}},\n  \"comment\": \"Great product quality!\",\n  \"rate\": 5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/reviews/create",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "reviews", "create"]
+            }
+          }
+        },
+        {
+          "name": "Get My Reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/my-reviews?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "my-reviews"],
+              "query": [
+                { "key": "page", "value": "1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Review",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"review_id\": {{review_id}},\n  \"comment\": \"Updated product review!\",\n  \"rate\": 4\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/review/update",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "review", "update"]
+            },
+            "description": "Accepts review_id or id in body/query, or /api/v1/review/update/{{review_id}}"
+          }
+        },
+        {
+          "name": "Delete Review",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"review_id\": {{review_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/review/delete",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "review", "delete"]
+            },
+            "description": "Accepts review_id or id in body/query, or /api/v1/review/delete/{{review_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Checkout, Orders & Payments",
+      "auth": {
+        "type": "bearer",
+        "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+      },
+      "item": [
+        {
+          "name": "Checkout (Create Order)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.order && res.order.id) {",
+                  "    pm.collectionVariables.set('order_id', String(res.order.id));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_name\": \"Ahmed Mousa\",\n  \"user_phone\": \"+201012345678\",\n  \"user_address\": \"15 Nasr City Street, Cairo, Egypt\",\n  \"governorate_id\": {{governorate_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/checkouts",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "checkouts"]
+            },
+            "description": "user_phone must match Egyptian regex: +20(10|11|12|15)XXXXXXXX"
+          }
+        },
+        {
+          "name": "List My Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders"]
+            }
+          }
+        },
+        {
+          "name": "Show Order Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/order?order_id={{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "order"],
+              "query": [
+                { "key": "order_id", "value": "{{order_id}}" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pay Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"method\": \"cash\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/{{order_id}}/pay",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "orders", "{{order_id}}", "pay"]
+            },
+            "description": "Allowed methods: cash, vodafone_cash, fawry, credit_card"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Addresses",
+      "auth": {
+        "type": "bearer",
+        "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+      },
+      "item": [
+        {
+          "name": "List Addresses",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/address?page=1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "address"],
+              "query": [
+                { "key": "page", "value": "1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Address",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.id) {",
+                  "    pm.collectionVariables.set('address_id', String(res.data.id));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name_address\": \"Home\",\n  \"address\": \"15 Nasr City Street, Cairo, Egypt\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/address/create",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "address", "create"]
+            }
+          }
+        },
+        {
+          "name": "Update Address",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address_id\": {{address_id}},\n  \"name_address\": \"Work\",\n  \"address\": \"22 Maadi Street, Cairo, Egypt\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/address/update",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "address", "update"]
+            }
+          }
+        },
+        {
+          "name": "Delete Address",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/address/delete/{{address_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "address", "delete", "{{address_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications & FCM",
+      "item": [
+        {
+          "name": "Save Guest FCM Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fcm_token\": \"DEVICE_FCM_TOKEN\",\n  \"device_id\": \"web-browser-1\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/fcm-token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "fcm-token"]
+            }
+          }
+        },
+        {
+          "name": "Save Authenticated User FCM Token",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fcm_token\": \"DEVICE_FCM_TOKEN\",\n  \"device_id\": \"web-browser-1\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/fcm-token-user",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "fcm-token-user"]
+            }
+          }
+        },
+        {
+          "name": "Get User Notifications",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/notifications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "notifications"]
+            }
+          }
+        },
+        {
+          "name": "Send Notification to All Registered Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"New Update\",\n  \"body\": \"Check out new arrivals in Mousa Store!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/send-to-user",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "send-to-user"]
+            }
+          }
+        },
+        {
+          "name": "Send Broadcast Notification",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Flash Sale\",\n  \"body\": \"Up to 30% off today!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/send-to-all",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "send-to-all"]
+            }
+          }
+        },
+        {
+          "name": "Test Specific FCM Token",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+            },
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": 1,\n  \"title\": \"Test Offer\",\n  \"body\": \"Testing FCM data payload\",\n  \"type\": \"offer\",\n  \"data\": {\n    \"offer_id\": \"1\",\n    \"product_id\": \"1\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/test-specific-token",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "test-specific-token"]
+            },
+            "description": "Pass either token or user_id. Optional type / data object."
+          }
+        }
+      ]
+    }
+  ]
+}
