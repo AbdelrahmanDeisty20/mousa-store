@@ -9,6 +9,7 @@ use Laravel\Socialite\Facades\Socialite;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\{LoginRequest, RegisterRequest, editProfileRequest};
 use App\Http\Requests\{EmailVerfived, resendCode};
+use App\Mail\OtpMail;
 use App\Models\{Otp, RefreshToken, User};
 use Carbon\Carbon;
 
@@ -24,11 +25,6 @@ class AuthController extends Controller
             $code = random_int(100000, 999999);
             $codeHash = Hash::make((string) $code);
             $expiresAt = now()->addMinutes(10);
-            Mail::raw("كود التحقق الخاص بتسجيل الدخول: $code\nصالح لمدة 10 دقائق.", function ($message) use ($user) {
-                $message->to($user->email)
-                    ->subject('كود التحقق OTP')
-                    ->from(config('mail.from.address'), config('mail.from.name'));
-            });
             Otp::create([
                 'user_id' => $user->id,
                 'otp' => $codeHash,
@@ -38,6 +34,12 @@ class AuthController extends Controller
                 'verified' => false,
                 'is_used' => false,
             ]);
+            Mail::to($user->email)->queue(new OtpMail(
+                otpCode: (string) $code,
+                purpose: 'register',
+                expiresInMinutes: 10,
+                recipientName: trim("{$user->first_name} {$user->last_name}"),
+            ));
         }
         $token = $user->createToken('API Token')->plainTextToken;
 
@@ -140,24 +142,25 @@ class AuthController extends Controller
         ]);
 
     // إنشاء كود OTP جديد
-    $otpCode = rand(100000, 999999);
+    $otpCode = random_int(100000, 999999);
     $codeHash = Hash::make((string) $otpCode);
 
     $otp = Otp::create([
         'user_id' => $user->id,
         'otp' => $codeHash,
-        'expires_at' => now()->addMinutes(5),
+        'expires_at' => now()->addMinutes(10),
         'is_used' => false,
         'type' => 'register',
         "email" => $data["email"],
     ]);
 
-    // إرسال الكود بالبريد
-    Mail::raw("تم اعادة  كود التحقق الخاص بتسجيل الدخول: $otpCode\nصالح لمدة 10 دقائق.", function ($message) use ($user) {
-                $message->to($user->email)
-                    ->subject('كود التحقق OTP')
-                    ->from(config('mail.from.address'), config('mail.from.name'));
-            });
+    // إرسال الكود بالبريد عبر Queue
+    Mail::to($user->email)->queue(new OtpMail(
+        otpCode: (string) $otpCode,
+        purpose: 'resend_register',
+        expiresInMinutes: 10,
+        recipientName: trim("{$user->first_name} {$user->last_name}"),
+    ));
 
     return response()->json([
         'success' => true,

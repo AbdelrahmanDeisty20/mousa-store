@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\{passwordRequest, codeRequest, forgetPasswordRequest};
 use App\Http\Requests\resendCode;
+use App\Mail\OtpMail;
 use App\Models\{Otp, User};
 use Carbon\Carbon;
 
@@ -49,12 +50,13 @@ class ForgetPasswordController extends Controller
             'is_used' => false,
         ]);
 
-        // إرسال الكود بالبريد
-        Mail::raw("كود التحقق الخاص بالباسورد : $otpCode\nصالح لمدة 10 دقائق.", function ($message) use ($user) {
-            $message->to($user->email)
-                ->subject('كود التحقق OTP')
-                ->from(config('mail.from.address'), config('mail.from.name'));
-        });
+        // إرسال الكود بالبريد عبر Queue
+        Mail::to($user->email)->queue(new OtpMail(
+            otpCode: (string) $otpCode,
+            purpose: 'forgot_password',
+            expiresInMinutes: 10,
+            recipientName: trim("{$user->first_name} {$user->last_name}"),
+        ));
 
         return response()->json([
             'success' => true,
@@ -174,12 +176,13 @@ class ForgetPasswordController extends Controller
             'is_used' => false,
         ]);
 
-        // إرسال الكود بالبريد
-        Mail::raw("تم اعادة ارسال كود التحقق الخاص بالباسورد :  $otpCode\nصالح لمدة 10 دقائق.", function ($message) use ($user) {
-            $message->to($user->email)
-                ->subject('كود التحقق OTP')
-                ->from(config('mail.from.address'), config('mail.from.name'));
-        });
+        // إرسال الكود بالبريد عبر Queue
+        Mail::to($user->email)->queue(new OtpMail(
+            otpCode: (string) $otpCode,
+            purpose: 'resend_forgot_password',
+            expiresInMinutes: 10,
+            recipientName: trim("{$user->first_name} {$user->last_name}"),
+        ));
 
         return response()->json([
             'success' => true,
