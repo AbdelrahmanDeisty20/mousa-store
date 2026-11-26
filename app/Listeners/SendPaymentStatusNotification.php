@@ -3,60 +3,44 @@
 namespace App\Listeners;
 
 use App\Events\PaymentStatusEvent;
-use App\Models\{Notification, User};use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
+use App\Models\{Notification, User};
 
 class SendPaymentStatusNotification
 {
     /**
-     * Create the event listener.
-     */
-    public function __construct()
-    {
-        //
-    }
-
-    /**
-     * Handle the event.
+     * Handle the payment status notification using the unified notifications schema.
      */
     public function handle(PaymentStatusEvent $event): void
     {
         $payment = $event->payment;
-        $order   = $payment->order;
-        $user    = $order->user;
+        $order = $payment->order;
+        $user = $order?->user;
 
-        // الإدمن فقط
+        if (! $order) {
+            return;
+        }
+
+        $customerName = trim(($user?->first_name ?? '') . ' ' . ($user?->last_name ?? '')) ?: ($user?->email ?? 'Customer');
         $admins = User::where('user_type', 'admin')->get();
 
         foreach ($admins as $admin) {
-
             if ($payment->status === 'completed') {
-
                 Notification::create([
-                    'user_id'    => $admin->id,
-                    'payment_id' => $payment->id,
-                    'order_id'   => $order->id,
-
-                    'title_ar'   => 'تم الدفع بنجاح',
-                    'title_en'   => 'Payment Completed',
-
-                    'message_ar' => "تم استلام دفعة بقيمة {$payment->amount} من المستخدم {$user->name} للطلب رقم {$order->order_number}",
-                    'message_en' => "Payment of {$payment->amount} received from user {$user-> first_name} {$user-> last_name}  for order {$order->order_number}",
+                    'user_id' => $admin->id,
+                    'title'   => 'تم الدفع بنجاح / Payment Completed',
+                    'body'    => "تم استلام دفعة بقيمة {$payment->amount} من {$customerName} للطلب رقم {$order->order_number}",
+                    'type'    => 'payment_completed',
+                    'data'    => ['order_id' => $order->id, 'payment_id' => $payment->id],
+                    'is_read' => false,
                 ]);
-            }
-
-            if ($payment->status === 'failed') {
-
+            } elseif ($payment->status === 'failed') {
                 Notification::create([
-                    'user_id'    => $admin->id,
-                    'payment_id' => $payment->id,
-                    'order_id'   => $order->id,
-
-                    'title_ar'   => 'فشل عملية الدفع',
-                    'title_en'   => 'Payment Failed',
-
-                    'message_ar' => "فشلت عملية دفع بقيمة {$payment->amount} من المستخدم {$user->name} للطلب رقم {$order->order_number}",
-                    'message_en' => "Payment of {$payment->amount} failed from user {$user->name} for order {$order->order_number}",
+                    'user_id' => $admin->id,
+                    'title'   => 'فشل عملية الدفع / Payment Failed',
+                    'body'    => "فشلت عملية دفع بقيمة {$payment->amount} من {$customerName} للطلب رقم {$order->order_number}",
+                    'type'    => 'payment_failed',
+                    'data'    => ['order_id' => $order->id, 'payment_id' => $payment->id],
+                    'is_read' => false,
                 ]);
             }
         }

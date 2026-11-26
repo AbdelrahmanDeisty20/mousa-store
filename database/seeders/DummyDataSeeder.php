@@ -731,6 +731,7 @@ class DummyDataSeeder extends Seeder
         }
 
         $this->call(GovernorateSeeder::class);
+        $this->call(PageSeeder::class);
 
         $this->command->info("\n========================================================");
         $this->command->info("🎉 MOUSA STORE SPORTSWEAR SEEDING COMPLETED SUCCESSFULLY!");

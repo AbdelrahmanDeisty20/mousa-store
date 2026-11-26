@@ -46,6 +46,13 @@ class EventServiceProvider extends ServiceProvider
         \App\Events\OfferCreatedForFavorites::class => [
             \App\Listeners\SendOfferCreatedForFavoritesNotification::class,
         ],
+        \App\Events\LowStockDetected::class => [
+            \App\Listeners\SendLowStockCartNotification::class,
+            \App\Listeners\SendLowStockFavoriteNotification::class,
+        ],
+        \App\Events\ProductQuantityEvent::class => [
+            \App\Listeners\SendProductQuantityNotification::class,
+        ],
     ];
 
     /**

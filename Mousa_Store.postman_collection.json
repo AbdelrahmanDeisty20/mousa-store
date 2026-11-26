@@ -70,6 +70,11 @@
       "key": "review_id",
       "value": "1",
       "type": "string"
+    },
+    {
+      "key": "page_slug",
+      "value": "return-policy",
+      "type": "string"
     }
   ],
   "item": [
@@ -1459,6 +1464,42 @@
               "path": ["api", "v1", "test-specific-token"]
             },
             "description": "Pass either token or user_id. Optional type / data object."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Policy Pages (CMS)",
+      "item": [
+        {
+          "name": "List Policy Pages",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pages",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "pages"]
+            }
+          }
+        },
+        {
+          "name": "Get Policy Page by Slug",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Accept-Language", "value": "{{lang}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/pages/{{page_slug}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "pages", "{{page_slug}}"]
+            },
+            "description": "Available slugs: privacy-policy, return-policy, terms-and-conditions, shipping-policy, consumer-protection"
           }
         }
       ]

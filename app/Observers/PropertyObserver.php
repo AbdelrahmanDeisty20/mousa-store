@@ -8,6 +8,7 @@ use App\Models\Notification;
 use App\Service\FirebaseNotificationService;
 use App\Service\ProductHelper;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PropertyObserver
 {
@@ -83,11 +84,15 @@ class PropertyObserver
 
             // إرسال عبر Firebase
             foreach ($user->fcmTokens as $tokenRecord) {
-                $this->firebaseService->sendToToken($tokenRecord->fcm_token, $title, $body, [
-                    'type'        => 'product',
-                    'product_id'  => $property->product_id,
-                    'property_id' => $property->id,
-                ]);
+                try {
+                    $this->firebaseService->sendToToken($tokenRecord->fcm_token, $title, $body, [
+                        'type'        => 'product',
+                        'product_id'  => $property->product_id,
+                        'property_id' => $property->id,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error("FCM Error (Property Observer) for user {$user->id}: " . $e->getMessage());
+                }
             }
         }
     }

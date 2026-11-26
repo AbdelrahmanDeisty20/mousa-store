@@ -38,6 +38,9 @@ class AdminCheck
 
         // Hard-coded restrictions for subAdmin
         $user = $request->user();  // Get the authenticated user
+        $permission = Permission::get(['id', 'name', 'routes'])
+            ->first(fn ($perm) => in_array($routeName, array_map('trim', explode(',', (string) $perm->routes)), true));
+
         if ($user->hasRole('subAdmin')) {
             $restrictedPermissions = [
                 // 'edit_users',  // Removed to allow subAdmin to edit basic info
@@ -46,21 +49,16 @@ class AdminCheck
                 'edit_contacts',  // Block editing contacts
             ];
 
-            // Check if the current route's permission is in the restricted list
-            // We need to find the permission associated with the route first
-            $permissionForRoute = Permission::whereRaw("FIND_IN_SET('$routeName',routes)")->first();
-            if ($permissionForRoute && in_array($permissionForRoute->name, $restrictedPermissions)) {
+            if ($permission && in_array($permission->name, $restrictedPermissions, true)) {
                 abort(403, 'Unauthorized action for Sub Admin.');
             }
         }
 
         // Original permission check for all users (including subAdmin for non-restricted actions)
-        $permission = Permission::whereRaw("FIND_IN_SET('$routeName',routes)")->first();
-        if ($permission) {
-            if (!$request->user()->can($permission->name)) {
-                abort(403);
-            }
+        if ($permission && ! $user->can($permission->name)) {
+            abort(403);
         }
+
         return $next($request);
     }
 }

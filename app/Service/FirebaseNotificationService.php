@@ -4,9 +4,25 @@ namespace App\Service;
 
 use Google\Auth\Credentials\ServiceAccountCredentials;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class FirebaseNotificationService
 {
+    /**
+     * Check whether Firebase project ID and credentials JSON exist on disk.
+     */
+    public function isConfigured(): bool
+    {
+        $projectId = env('FIREBASE_PROJECT_ID');
+        $credentialsRel = env('FIREBASE_CREDENTIALS');
+
+        if (empty($projectId) || empty($credentialsRel)) {
+            return false;
+        }
+
+        return is_file(base_path($credentialsRel));
+    }
+
     private function accessToken()
     {
         $credentials = new ServiceAccountCredentials(
@@ -28,6 +44,11 @@ class FirebaseNotificationService
      */
     public function sendToToken(string $token, string $title, string $body, array $data = [])
     {
+        if (! $this->isConfigured()) {
+            Log::warning('Firebase notification skipped: missing FIREBASE_PROJECT_ID or credentials JSON.');
+            return ['success' => false, 'skipped' => true];
+        }
+
         $message = [
             "token" => $token,
             "notification" => [

@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Models\Notification;
 use App\Service\FirebaseNotificationService;
+use Illuminate\Support\Facades\Log;
 
 class OrderObserver
 {
@@ -52,10 +53,14 @@ class OrderObserver
                 $admin->load('fcmTokens');
             }
             foreach ($admin->fcmTokens as $tokenRecord) {
-                $this->firebaseService->sendToToken($tokenRecord->fcm_token, $title, $body, [
-                    'type'     => 'order',
-                    'order_id' => $order->id,
-                ]);
+                try {
+                    $this->firebaseService->sendToToken($tokenRecord->fcm_token, $title, $body, [
+                        'type'     => 'order',
+                        'order_id' => $order->id,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error("FCM Error (Order Observer) for admin {$admin->id}: " . $e->getMessage());
+                }
             }
         }
     }

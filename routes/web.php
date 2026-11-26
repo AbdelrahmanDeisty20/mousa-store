@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Dashboard\{AddressController, AuthController, BannerController, BrandController, CategoryController, FavoriteController, HomeController, NotificationsController, OfferController, OrderController, PaymentController, ProductBannerController, ProductsController, ProductDetailsController, PropertyController, ReviewController, SettingController, UserController, AttributeDefinitionController, ContactController, ProductExcelController};
+use App\Http\Controllers\Dashboard\{AddressController, AuthController, BannerController, BrandController, CategoryController, FavoriteController, HomeController, NotificationsController, OfferController, OrderController, PageController, PaymentController, ProductBannerController, ProductsController, ProductDetailsController, PropertyController, ReviewController, SettingController, UserController, AttributeDefinitionController, ContactController, ProductExcelController};
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -41,6 +41,7 @@ Route::group(['prefix' => 'admin', 'middleware' => 'lang'], function () {
         Route::resource('settings', SettingController::class);
         Route::resource('productBanners', ProductBannerController::class);
         Route::resource('contacts', ContactController::class)->only(['index', 'edit', 'update']);
+        Route::resource('pages', PageController::class);
 
         Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
         Route::get('payments/delete{id}', [PaymentController::class, 'index'])->name('payments.destroy');

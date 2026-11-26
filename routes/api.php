@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\API\{AddressController, AuthController, CartController, CategoryController, GovernorateController, CheckoutController, ForgetPasswordController, HomeController, NotificationController, OfferController, OrderController, PaymentController, ProductController, ProductFilterController, ReviewController, ContactController};
+use App\Http\Controllers\API\{AddressController, AuthController, CartController, CategoryController, GovernorateController, CheckoutController, ForgetPasswordController, HomeController, NotificationController, OfferController, OrderController, PageController, PaymentController, ProductController, ProductFilterController, ReviewController, ContactController};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +45,8 @@ Route::group(['prefix' => 'v1', 'middleware' => ['lang']], function () {
     Route::get('test-notification', [HomeController::class, 'testNotification']);
     Route::get('governorates', [GovernorateController::class, 'index']);
     Route::get('contacts', [ContactController::class, 'index']);
+    Route::get('pages', [PageController::class, 'index']);
+    Route::get('pages/{slug}', [PageController::class, 'show']);
 
     Route::get('shippings', [HomeController::class, 'shipping']);
     // routes/api.php

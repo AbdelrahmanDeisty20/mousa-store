@@ -90,6 +90,12 @@ class AdminRoleSeeder extends Seeder
                 'view_reviews' => 'reviews.index',
                 'delete_reviews' => 'reviews.destroy',
             ],
+            'pages' => [
+                'view_pages' => 'pages.index,pages.show',
+                'create_pages' => 'pages.create,pages.store',
+                'edit_pages' => 'pages.edit,pages.update',
+                'delete_pages' => 'pages.destroy',
+            ],
         ];
 
         $allPermissions = [];
