@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $projectName }} - Verification Code</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body style="margin:0;padding:0;background-color:#f4f5f7;font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
+<body style="margin:0;padding:0;background-color:#f4f5f7;font-family:'Alexandria',Arial,Helvetica,sans-serif;color:#111827;">
 @php
     $isReset = str_contains($purpose, 'forgot_password');
     $displayName = trim($recipientName);
@@ -16,9 +18,9 @@
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background-color:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.06);">
                 <!-- Header -->
                 <tr>
-                    <td align="center" style="background-color:#111827;padding:24px 20px;color:#ffffff;">
+                    <td align="center" style="background-color:#121316;padding:24px 20px;color:#ffffff;border-bottom:3px solid #D9141E;">
                         <h1 style="margin:0;font-size:24px;letter-spacing:0.5px;">{{ $projectName }}</h1>
-                        <p style="margin:6px 0 0;font-size:13px;color:#d1d5db;">موسى ستور للتسوق الإلكتروني</p>
+                        <p style="margin:6px 0 0;font-size:13px;color:#d1d5db;">موسى ستور — SPORTSWEAR &amp; EQUIPMENT</p>
                     </td>
                 </tr>
 
@@ -36,8 +38,8 @@
                             @endif
                         </p>
 
-                        <div style="margin:18px 0;padding:16px;background-color:#f9fafb;border:1px dashed #dc2626;border-radius:8px;text-align:center;">
-                            <span style="display:inline-block;font-size:30px;font-weight:bold;letter-spacing:6px;color:#dc2626;">{{ $otpCode }}</span>
+                        <div style="margin:18px 0;padding:16px;background-color:#f9fafb;border:1px dashed #D9141E;border-radius:8px;text-align:center;">
+                            <span style="display:inline-block;font-size:30px;font-weight:bold;letter-spacing:6px;color:#D9141E;">{{ $otpCode }}</span>
                         </div>
 
                         <p style="margin:0;font-size:13px;color:#6b7280;">
@@ -66,8 +68,8 @@
                             @endif
                         </p>
 
-                        <div style="margin:16px 0;padding:14px;background-color:#f9fafb;border:1px dashed #dc2626;border-radius:8px;text-align:center;">
-                            <span style="display:inline-block;font-size:28px;font-weight:bold;letter-spacing:6px;color:#dc2626;">{{ $otpCode }}</span>
+                        <div style="margin:16px 0;padding:14px;background-color:#f9fafb;border:1px dashed #D9141E;border-radius:8px;text-align:center;">
+                            <span style="display:inline-block;font-size:28px;font-weight:bold;letter-spacing:6px;color:#D9141E;">{{ $otpCode }}</span>
                         </div>
 
                         <p style="margin:0;font-size:13px;color:#6b7280;">

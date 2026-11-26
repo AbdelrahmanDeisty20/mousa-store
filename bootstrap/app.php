@@ -17,9 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->throttleApi('api');
         $middleware->alias([
             'lang' => \App\Http\Middleware\SetLang::class,
-            'authCheck' => \App\Http\Middleware\authCheck::class,
             'EmailVerfived' => \App\Http\Middleware\EmailVerfived::class,
-            'AdminCheck' => \App\Http\Middleware\AdminCheck::class,
         ]);
     })
     ->withEvents(discover: false)
