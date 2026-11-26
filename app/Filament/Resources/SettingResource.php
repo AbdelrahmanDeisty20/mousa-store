@@ -99,6 +99,21 @@ class SettingResource extends Resource
                         ->step('0.01')
                         ->suffix(__('EGP'))
                         ->required(),
+
+                    TextInput::make('estimated_days')
+                        ->label(__('Estimated Delivery Days'))
+                        ->placeholder('2-5')
+                        ->default('2-5')
+                        ->maxLength(50),
+
+                    TextInput::make('tax')
+                        ->label(__('Tax Rate (%)'))
+                        ->numeric()
+                        ->minValue(0)
+                        ->maxValue(100)
+                        ->step('0.01')
+                        ->default(0)
+                        ->suffix('%'),
                 ]),
         ]);
     }
@@ -121,6 +136,15 @@ class SettingResource extends Resource
                 TextColumn::make('shipping')
                     ->label(__('Shipping Fee'))
                     ->money('EGP')
+                    ->sortable(),
+
+                TextColumn::make('estimated_days')
+                    ->label(__('Estimated Delivery Days'))
+                    ->default('2-5'),
+
+                TextColumn::make('tax')
+                    ->label(__('Tax Rate (%)'))
+                    ->suffix('%')
                     ->sortable(),
             ])
             ->recordActions([

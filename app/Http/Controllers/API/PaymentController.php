@@ -4,66 +4,106 @@ namespace App\Http\Controllers\API;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Events\OrdertStatusEvent;
 use App\Events\PaymentStatusEvent;
-use App\Models\{Order, Payment};
+use App\Models\{Order, Payment, PaymentMethod};
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class PaymentController extends Controller
 {
     public function createPayment(Request $request, $orderId)
     {
-        $user = $request->user();
-        $order = Order::where('id', $orderId)->where('user_id', $user->id)->firstOrFail();
+        $user = $request->user() ?? auth('sanctum')->user();
 
-        if (!in_array($order->status, ['pending','processing'])) {
-            return response()->json(['message' => 'Order not payable','data'=>[]] , 200);
+        $orderQuery = Order::where('id', $orderId);
+        $user
+            ? $orderQuery->where('user_id', $user->id)
+            : $orderQuery->whereNull('user_id');
+
+        $order = $orderQuery->firstOrFail();
+
+        if (! in_array($order->status, ['pending', 'processing'], true)) {
+            return response()->json(['success' => false, 'message' => 'Order not payable', 'data' => []], 200);
         }
 
-        $data = $request->validate(['method' => 'required|in:vodafone_cash,fawry,credit_card,cash']);
+        $activeMethods = PaymentMethod::activeCodes();
+        $data = $request->validate([
+            'method' => ['required', 'string', Rule::in($activeMethods)],
+        ]);
+
+        $methodCode = $data['method'];
+        $paymentMethod = PaymentMethod::where('code', $methodCode)->first();
 
         $payment = Payment::create([
             'order_id' => $order->id,
-            'method' => $data['method'],
+            'method' => $methodCode,
             'amount' => $order->total_price,
-            'status' => 'pending'
+            'status' => 'pending',
         ]);
 
-        // Example — call provider API here and save response
-        if ($data['method'] === 'fawry') {
-            // call Fawry API -> save invoice_id/payment_url
+        $paymentUrl = $this->resolveConfiguredPaymentUrl($paymentMethod, $payment, $order);
+        $referenceCode = null;
+        $providerResponse = [];
+
+        if ($methodCode === 'cash') {
+            $order->update(['status' => 'paid']);
             $providerResponse = [
-                'invoice_id' => 'FW-' . uniqid(),
-                'payment_url' => url('/pay/fawry/' . $payment->id),
+                'instruction' => 'Pay with cash upon delivery.',
+                'note' => 'No online payment needed. Your order will be processed.',
+            ];
+            $payment->update(['response' => json_encode($providerResponse), 'status' => 'completed']);
+            event(new PaymentStatusEvent($payment));
+        } elseif ($methodCode === 'fawry') {
+            $referenceCode = 'FW-' . strtoupper(Str::random(8));
+            $providerResponse = [
+                'invoice_id' => $referenceCode,
+                'reference_code' => $referenceCode,
+                'payment_url' => $paymentUrl,
             ];
             $payment->update(['response' => json_encode($providerResponse)]);
-            return response()->json(['payment' => $payment, 'provider' => $providerResponse]);
-        }
-
-        if ($data['method'] === 'vodafone_cash') {
+        } elseif ($methodCode === 'vodafone_cash') {
+            $referenceCode = 'VC-' . strtoupper(Str::random(8));
             $providerResponse = [
-                'reference' => 'VC-' . uniqid(),
-                'instruction' => 'Send payment via Vodafone Cash with reference ...'
+                'reference' => $referenceCode,
+                'reference_code' => $referenceCode,
+                'payment_url' => $paymentUrl,
+                'instruction' => $paymentMethod?->description ?: 'Send payment via Vodafone Cash using the reference code.',
             ];
             $payment->update(['response' => json_encode($providerResponse)]);
-            // event(new PaymentStatusEvent($payment));
-            return response()->json(['payment' => $payment, 'provider' => $providerResponse]);
+        } else {
+            // credit_card, valu, sympl, or additional dashboard-enabled gateways
+            $referenceCode = strtoupper($methodCode) . '-' . strtoupper(Str::random(8));
+            $providerResponse = [
+                'reference_code' => $referenceCode,
+                'payment_url' => $paymentUrl,
+                'instruction' => $paymentMethod?->description ?: __('Complete payment using the provided reference or checkout link.'),
+            ];
+            $payment->update(['response' => json_encode($providerResponse)]);
         }
-        // بعد شرط فوري وفودافون
-if ($data['method'] === 'cash') {
-    $order->update(["status"=>"paid"]);
-    $providerResponse = [
-        'instruction' => 'Pay with cash upon delivery.',
-        'note' => 'No online payment needed. Your order will be processed.'
-    ];
-    $payment->update(['response' => json_encode($providerResponse),"status"=>"completed"]);
-       event(new PaymentStatusEvent($payment));
 
-    return response()->json(['payment' => $payment, 'provider' => $providerResponse]);
-}
+        return response()->json([
+            'success' => true,
+            'payment' => $payment->fresh(),
+            'provider' => $providerResponse,
+            'payment_url' => $paymentUrl,
+            'reference_code' => $referenceCode,
+        ]);
+    }
 
+    private function resolveConfiguredPaymentUrl(?PaymentMethod $paymentMethod, Payment $payment, Order $order): ?string
+    {
+        $template = trim((string) ($paymentMethod?->config['payment_url'] ?? ''));
+        if ($template === '') {
+            return null;
+        }
 
-        return response()->json(['payment' => $payment]);
+        return strtr($template, [
+            '{payment_id}' => (string) $payment->id,
+            '{order_id}' => (string) $order->id,
+            '{order_number}' => (string) $order->order_number,
+            '{amount}' => (string) $payment->amount,
+        ]);
     }
 
     // public callback endpoints — Fawry

@@ -9,8 +9,15 @@ class Setting extends Model
 {
     use HasFactory;
     protected $fillable = [
-        "shipping",
-        "governorate_id"
+        'shipping',
+        'tax',
+        'governorate_id',
+        'estimated_days',
+    ];
+
+    protected $casts = [
+        'shipping' => 'float',
+        'tax' => 'float',
     ];
     public function governorate()
     {

@@ -22,24 +22,63 @@ class CheckoutRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "user_name" => [
-                "required",
-                "string",
-                "min:3",
-                "max:255",
+            'user_name' => [
+                'required',
+                'string',
+                'min:3',
+                'max:255',
             ],
-            "user_phone" => [
-                "required",
-                "string",
-                "regex:/^\+20(10|11|12|15)[0-9]{8}$/",
+            'user_phone' => [
+                'required',
+                'string',
+                'regex:/^(?:\+20|0)(10|11|12|15)[0-9]{8}$/',
             ],
-            "user_address" => [
-                "required",
-                "string",
-                "min:10",
+            'user_address' => [
+                'required',
+                'string',
+                'min:10',
             ],
-             "governorate_id" => [
-                "required",
+            'governorate_id' => [
+                'required',
+            ],
+            'coupon_code' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+            ],
+            'user_email' => [
+                'nullable',
+                'email',
+                'max:255',
+            ],
+            'marketing_opt_in' => [
+                'nullable',
+                'boolean',
+            ],
+            'items' => [
+                'nullable',
+                'array',
+                'min:1',
+            ],
+            'items.*.property_id' => [
+                'required_without:items.*.id',
+                'integer',
+                'exists:properties,id',
+            ],
+            'items.*.id' => [
+                'required_without:items.*.property_id',
+                'integer',
+                'exists:properties,id',
+            ],
+            'items.*.quantity' => [
+                'required_with:items',
+                'integer',
+                'min:1',
             ],
         ];
     }

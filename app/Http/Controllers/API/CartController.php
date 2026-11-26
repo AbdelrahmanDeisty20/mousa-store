@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\createRequest;
 use App\Models\{Cart, Offer, Product, Property};
+use App\Service\CheckoutPricingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\{Auth, DB};
 class CartController extends Controller
 {
     // عرض السلة النشطة للمستخدم
-    public function index()
+    public function index(Request $request, CheckoutPricingService $pricing)
     {
         $user = Auth::user();
         $now = now();
@@ -49,11 +50,20 @@ class CartController extends Controller
             }
         }
 
+        $setting = $pricing->resolveSetting(
+            $request->filled('governorate_id') ? (int) $request->input('governorate_id') : null,
+            $user->id
+        );
+
         if (!$cart || $cart->items->isEmpty()) {
+            $emptyTax = $pricing->calculateTax(0.0, $setting);
+
             return response()->json([
                 'success' => true,
                 'message' => 'No active cart with products found',
-                'data' => []
+                'data' => [],
+                'tax_rate' => $emptyTax['tax_rate'],
+                'tax_amount' => 0.0,
             ]);
         }
 
@@ -108,15 +118,23 @@ class CartController extends Controller
         });
 
         // يمكن حساب المجموع هنا للتأكيد، أو الاعتماد على الحساب السابق
-        $cart->total = $transformedItems->sum('line_total');
+        $subtotal = round((float) $transformedItems->sum('line_total'), 2);
+        $cart->total = $subtotal;
         $cart->save();
+
+        $tax = $pricing->calculateTax($subtotal, $setting);
 
         return response()->json([
             'success' => true,
+            'tax_rate' => $tax['tax_rate'],
+            'tax_amount' => $tax['tax_amount'],
             'cart' => [
                 'id' => $cart->id,
                 'user_id' => $cart->user_id,
                 'total' => $cart->total,
+                'subtotal' => $subtotal,
+                'tax_rate' => $tax['tax_rate'],
+                'tax_amount' => $tax['tax_amount'],
                 'items' => $transformedItems,
             ],
         ]);

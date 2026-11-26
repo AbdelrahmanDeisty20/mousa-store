@@ -9,7 +9,39 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['order_number', 'user_id', 'total_price', 'status', 'user_name', 'user_phone', 'user_address', 'governorate_id', 'notice'];
+    protected $fillable = [
+        'order_number',
+        'user_id',
+        'total_price',
+        'subtotal',
+        'coupon_id',
+        'coupon_code',
+        'discount_amount',
+        'tax_amount',
+        'shipping_amount',
+        'status',
+        'user_name',
+        'user_phone',
+        'user_email',
+        'user_address',
+        'marketing_opt_in',
+        'governorate_id',
+        'notice',
+    ];
+
+    protected $casts = [
+        'subtotal' => 'float',
+        'discount_amount' => 'float',
+        'tax_amount' => 'float',
+        'shipping_amount' => 'float',
+        'total_price' => 'float',
+        'marketing_opt_in' => 'boolean',
+    ];
+
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class);
+    }
 
     public function items()
     {

@@ -52,8 +52,12 @@ class AdminAccess
             return false;
         }
 
-        if ($user->hasPermissionTo($permission, 'web')) {
-            return true;
+        try {
+            if ($user->hasPermissionTo($permission, 'web')) {
+                return true;
+            }
+        } catch (\Throwable) {
+            // Newly introduced resources may map to permissions not yet seeded in older DBs
         }
 
         // Preserve legacy subAdmin restrictions unless permission was explicitly granted

@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\API\{AddressController, AuthController, CartController, CategoryController, GovernorateController, CheckoutController, ForgetPasswordController, HomeController, NotificationController, OfferController, OrderController, PageController, PaymentController, ProductController, ProductFilterController, ReviewController, ContactController};
+use App\Http\Controllers\API\{AddressController, AuthController, CartController, CategoryController, CouponController, GovernorateController, CheckoutController, ForgetPasswordController, HomeController, NotificationController, OfferController, OrderController, PageController, PaymentController, PaymentMethodController, ProductController, ProductFilterController, ReviewController, ContactController};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -49,6 +49,10 @@ Route::group(['prefix' => 'v1', 'middleware' => ['lang']], function () {
     Route::get('pages/{slug}', [PageController::class, 'show']);
 
     Route::get('shippings', [HomeController::class, 'shipping']);
+    Route::get('payment-methods', [PaymentMethodController::class, 'index']);
+    Route::post('coupons/apply', [CouponController::class, 'apply']);
+    Route::post('checkouts', [CheckoutController::class, 'checkout']);
+    Route::post('orders/{order}/pay', [PaymentController::class, 'createPayment']);
     // routes/api.php
     Route::post('fcm-token', [HomeController::class, 'saveFcmToken']);
 
@@ -83,10 +87,8 @@ Route::group(['prefix' => 'v1', 'middleware' => ['lang']], function () {
         Route::match(['put', 'patch'], 'review/update/{id}', [ReviewController::class, 'update']);
         Route::delete('review/delete', [ReviewController::class, 'destroy']);
         Route::delete('review/delete/{id}', [ReviewController::class, 'destroy']);
-        Route::post('checkouts', [CheckoutController::class, 'checkout']);
         Route::post('addFavorite', [ProductController::class, 'addFavorite']);
         Route::post('removeFavorite', [ProductController::class, 'removeFavorite']);
-        Route::post('orders/{order}/pay', [PaymentController::class, 'createPayment']);
         Route::get('orders', [OrderController::class, 'index']);
         Route::get('order', [OrderController::class, 'show']);
         Route::get('address', [AddressController::class, 'index']);

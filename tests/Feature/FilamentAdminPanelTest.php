@@ -672,4 +672,140 @@ class FilamentAdminPanelTest extends TestCase
             'user_id' => $this->customer->id,
         ]);
     }
+
+    public function test_checkout_coupons_payment_methods_tax_shipping_and_guest_checkout(): void
+    {
+        $gov = Governorate::firstOrFail();
+        Setting::updateOrCreate(
+            ['governorate_id' => $gov->id],
+            [
+                'shipping' => 50,
+                'estimated_days' => '2-4',
+                'tax' => 10,
+            ]
+        );
+
+        $category = Category::create(['name_ar' => 'أحذية', 'name_en' => 'Shoes', 'image' => 'c.jpg', 'sort_order' => 1]);
+        $brand = Brand::create(['name_ar' => 'نايكي', 'name_en' => 'Nike', 'image' => 'b.jpg']);
+        $product = Product::create([
+            'name_ar' => 'تيشيرت',
+            'name_en' => 'Jersey',
+            'desc_ar' => 'وصف',
+            'desc_en' => 'Desc',
+            'category_id' => $category->id,
+            'brand_id' => $brand->id,
+        ]);
+        $variant = Property::create([
+            'product_id' => $product->id,
+            'price' => 500,
+            'stock' => 10,
+            'main_image' => 'jersey.jpg',
+        ]);
+
+        \App\Models\Coupon::create([
+            'code' => 'MOUSA10',
+            'discount_type' => 'percent',
+            'discount_value' => 10,
+            'min_order_amount' => 200,
+            'max_discount_amount' => 150,
+            'usage_limit' => 5,
+            'is_active' => true,
+        ]);
+
+        // 1. Shipping returns estimated_days and tax
+        $this->getJson('/api/v1/shippings')
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonFragment([
+                'governorate_id' => $gov->id,
+                'estimated_days' => '2-4',
+            ]);
+
+        // 2. Payment methods returns only active methods and reflects Filament toggle changes
+        $methodsResponse = $this->getJson('/api/v1/payment-methods')
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonFragment(['code' => 'cash'])
+            ->assertJsonFragment(['code' => 'fawry']);
+        $this->assertNotContains('valu', array_column($methodsResponse->json('data'), 'code'));
+
+        \App\Models\PaymentMethod::where('code', 'valu')->update(['is_active' => true]);
+        $this->getJson('/api/v1/payment-methods')
+            ->assertOk()
+            ->assertJsonFragment(['code' => 'valu']);
+
+        // 3. Authenticated cart includes tax_rate & tax_amount, coupon apply computes discount on active cart
+        Sanctum::actingAs($this->customer);
+        $this->postJson('/api/v1/carts', [
+            'property_id' => $variant->id,
+            'quantity' => 2,
+        ])->assertOk();
+
+        $this->getJson('/api/v1/carts?governorate_id=' . $gov->id)
+            ->assertOk()
+            ->assertJsonPath('tax_rate', 10)
+            ->assertJsonPath('tax_amount', 100);
+
+        $this->postJson('/api/v1/coupons/apply', ['code' => 'mousa10'])
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.code', 'MOUSA10')
+            ->assertJsonPath('data.discount_type', 'percent')
+            ->assertJsonPath('data.discount_amount', 100)
+            ->assertJsonPath('data.final_total', 900);
+
+        // 4. Authenticated checkout with coupon_code calculates subtotal 1000 - 100 + 90 tax + 50 shipping = 1040
+        $checkoutRes = $this->postJson('/api/v1/checkouts', [
+            'user_name' => 'Ahmed Customer',
+            'user_phone' => '+201022222222',
+            'user_address' => '15 Nasr City Street, Cairo',
+            'governorate_id' => $gov->id,
+            'coupon_code' => 'MOUSA10',
+        ])->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('discount_amount', 100)
+            ->assertJsonPath('tax_amount', 90)
+            ->assertJsonPath('order.total_price', 1040);
+
+        $userOrderId = $checkoutRes->json('order.id');
+        $this->assertSame(1, \App\Models\Coupon::where('code', 'MOUSA10')->value('used_count'));
+
+        // 5. Guest checkout accepts email, marketing_opt_in, items, coupon_code without login
+        $this->app['auth']->forgetGuards();
+        $guestCheckoutRes = $this->postJson('/api/v1/checkouts', [
+            'user_name' => 'Guest Buyer',
+            'user_phone' => '01099999999',
+            'email' => 'guest@example.com',
+            'marketing_opt_in' => true,
+            'user_address' => '22 Maadi Corniche, Cairo',
+            'governorate_id' => $gov->id,
+            'coupon_code' => 'MOUSA10',
+            'items' => [
+                ['property_id' => $variant->id, 'quantity' => 1],
+            ],
+        ])->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('order.user_email', 'guest@example.com')
+            ->assertJsonPath('order.marketing_opt_in', true)
+            ->assertJsonPath('order.total_price', 545);
+
+        $guestOrderId = $guestCheckoutRes->json('order.id');
+
+        // Guest can pay their own guest order (unified reference_code + payment_url), but not a user's order
+        $this->postJson("/api/v1/orders/{$userOrderId}/pay", ['method' => 'fawry'])
+            ->assertNotFound();
+
+        $this->postJson("/api/v1/orders/{$guestOrderId}/pay", ['method' => 'fawry'])
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonStructure(['payment_url', 'reference_code', 'payment', 'provider']);
+
+        // 6. Filament Coupon, Payment Method, and Guest Order view pages load cleanly
+        auth()->shouldUse('web');
+        $this->actingAs($this->admin, 'web');
+        $this->get('/admin/coupons')->assertOk();
+        $this->get('/admin/coupons/create')->assertOk();
+        $this->get('/admin/payment-methods')->assertOk();
+        $this->get("/admin/orders/{$guestOrderId}")->assertOk();
+    }
 }

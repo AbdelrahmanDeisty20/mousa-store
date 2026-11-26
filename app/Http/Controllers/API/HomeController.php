@@ -231,8 +231,17 @@ class HomeController extends Controller
 
     public function shipping()
     {
-        // جلب شحن + governorate_id
-        $shipping = Setting::select('shipping', 'governorate_id')->get();
+        // جلب شحن + governorate_id + مدة التوصيل + الضريبة
+        $shipping = Setting::select('shipping', 'governorate_id', 'estimated_days', 'tax')
+            ->get()
+            ->map(function (Setting $setting): array {
+                return [
+                    'shipping' => $setting->shipping,
+                    'governorate_id' => $setting->governorate_id,
+                    'estimated_days' => $setting->estimated_days ?: '2-5',
+                    'tax' => $setting->tax ?? 0,
+                ];
+            });
 
         if ($shipping->isEmpty()) {
             return response()->json([

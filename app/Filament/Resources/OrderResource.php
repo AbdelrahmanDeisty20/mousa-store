@@ -267,12 +267,27 @@ class OrderResource extends Resource
                     TextEntry::make('created_at')->label(__('Created At'))->dateTime('Y-m-d H:i'),
                     TextEntry::make('user_name')->label(__('Customer Name')),
                     TextEntry::make('user_phone')->label(__('Phone')),
+                    TextEntry::make('user_email')
+                        ->label(__('Email'))
+                        ->visible(fn (Order $record): bool => filled($record->user_email)),
                     TextEntry::make('governorate.name')->label(__('Governorate')),
                     TextEntry::make('user_address')->label(__('Address'))->columnSpan(2),
+                    TextEntry::make('coupon_code')
+                        ->label(__('Promo Code'))
+                        ->badge()
+                        ->visible(fn (Order $record): bool => filled($record->coupon_code)),
+                    TextEntry::make('discount_amount')
+                        ->label(__('Discount'))
+                        ->money('EGP')
+                        ->visible(fn (Order $record): bool => (float) ($record->discount_amount ?? 0) > 0),
+                    TextEntry::make('tax_amount')
+                        ->label(__('Tax'))
+                        ->money('EGP')
+                        ->visible(fn (Order $record): bool => (float) ($record->tax_amount ?? 0) > 0),
                     TextEntry::make('shipping_cost')
                         ->label(__('Shipping Cost'))
                         ->state(function (Order $record): string {
-                            $cost = Setting::where('governorate_id', $record->governorate_id)->value('shipping') ?? 0;
+                            $cost = $record->shipping_amount ?? Setting::where('governorate_id', $record->governorate_id)->value('shipping') ?? 0;
 
                             return number_format((float) $cost, 2) . ' ' . __('EGP');
                         }),
