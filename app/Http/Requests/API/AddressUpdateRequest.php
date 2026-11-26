@@ -22,14 +22,14 @@ class AddressUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "address_id" => [
-                "required",
-                "exists:addresses,id"
+            'address_id' => [
+                'required',
+                'exists:addresses,id',
             ],
-            "name_address" => ["nullable", "string"],
-            // "city" => ["nullable", "string"],
-            // "phone" => ["nullable", "string"],
-            "address" => ["nullable", "string"]
+            'name_address' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'address' => ['nullable', 'string'],
         ];
     }
 

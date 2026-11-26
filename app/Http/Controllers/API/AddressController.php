@@ -5,7 +5,8 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\{AddressRequest, AddressUpdateRequest};
 use App\Models\Address;
-use Illuminate\Support\Facades\{Auth, Request};
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AddressController extends Controller
 {
@@ -26,6 +27,8 @@ class AddressController extends Controller
         $user = Auth::user();
         $data = $request->validated();
         $data['user_id'] = $user->id;
+        $data['city'] = $data['city'] ?? mb_substr(trim(explode('-', (string) $data['address'])[0] ?? ''), 0, 100);
+        $data['phone'] = $data['phone'] ?? ($user->phone ?: '');
         $address = Address::create($data);
 
         return response()->json([

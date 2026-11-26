@@ -734,8 +734,15 @@ class FilamentAdminPanelTest extends TestCase
             ->assertOk()
             ->assertJsonFragment(['code' => 'valu']);
 
-        // 3. Authenticated cart includes tax_rate & tax_amount, coupon apply computes discount on active cart
+        // 3. Authenticated address creation works even without city/phone, cart includes tax_rate & tax_amount, coupon apply computes discount on active cart
         Sanctum::actingAs($this->customer);
+        $this->postJson('/api/v1/address/create', [
+            'name_address' => 'المنزل',
+            'address' => 'الدقهلية - المنصورة - شارع الجمهورية',
+        ])->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.city', 'الدقهلية');
+
         $this->postJson('/api/v1/carts', [
             'property_id' => $variant->id,
             'quantity' => 2,

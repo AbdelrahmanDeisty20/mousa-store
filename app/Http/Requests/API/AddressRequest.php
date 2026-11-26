@@ -24,13 +24,23 @@ class AddressRequest extends FormRequest
         return [
             'name_address' => [
                 'required',
+                'string',
+                'max:255',
             ],
-            'address' => ['required'],
-            // 'city' => ['required'],
-            // 'phone' => [
-            //     'required',
-            //     'regex:/^\+20(10|11|12|15)[0-9]{8}$/',
-            // ],
+            'address' => [
+                'required',
+                'string',
+            ],
+            'city' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'phone' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
         ];
     }
 
