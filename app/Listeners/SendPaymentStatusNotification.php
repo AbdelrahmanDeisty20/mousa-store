@@ -3,12 +3,14 @@
 namespace App\Listeners;
 
 use App\Events\PaymentStatusEvent;
-use App\Models\{Notification, User};
+use App\Filament\Resources\OrderResource;
+use App\Service\AdminNotificationDispatcher;
+use Filament\Support\Icons\Heroicon;
 
 class SendPaymentStatusNotification
 {
     /**
-     * Handle the payment status notification using the unified notifications schema.
+     * Handle the payment status notification across legacy notifications and Filament bell alerts.
      */
     public function handle(PaymentStatusEvent $event): void
     {
@@ -20,29 +22,35 @@ class SendPaymentStatusNotification
             return;
         }
 
-        $customerName = trim(($user?->first_name ?? '') . ' ' . ($user?->last_name ?? '')) ?: ($user?->email ?? 'Customer');
-        $admins = User::where('user_type', 'admin')->get();
-
-        foreach ($admins as $admin) {
-            if ($payment->status === 'completed') {
-                Notification::create([
-                    'user_id' => $admin->id,
-                    'title'   => 'تم الدفع بنجاح / Payment Completed',
-                    'body'    => "تم استلام دفعة بقيمة {$payment->amount} من {$customerName} للطلب رقم {$order->order_number}",
-                    'type'    => 'payment_completed',
-                    'data'    => ['order_id' => $order->id, 'payment_id' => $payment->id],
-                    'is_read' => false,
-                ]);
-            } elseif ($payment->status === 'failed') {
-                Notification::create([
-                    'user_id' => $admin->id,
-                    'title'   => 'فشل عملية الدفع / Payment Failed',
-                    'body'    => "فشلت عملية دفع بقيمة {$payment->amount} من {$customerName} للطلب رقم {$order->order_number}",
-                    'type'    => 'payment_failed',
-                    'data'    => ['order_id' => $order->id, 'payment_id' => $payment->id],
-                    'is_read' => false,
-                ]);
-            }
+        if (! in_array($payment->status, ['completed', 'failed'], true)) {
+            return;
         }
+
+        $customerName = trim(($user?->first_name ?? '') . ' ' . ($user?->last_name ?? '')) ?: ($user?->email ?? 'Customer');
+        $isCompleted = $payment->status === 'completed';
+
+        $title = $isCompleted
+            ? 'تم الدفع بنجاح / Payment Completed'
+            : 'فشل عملية الدفع / Payment Failed';
+
+        $body = $isCompleted
+            ? "تم استلام دفعة بقيمة {$payment->amount} من {$customerName} للطلب رقم {$order->order_number}"
+            : "فشلت عملية دفع بقيمة {$payment->amount} من {$customerName} للطلب رقم {$order->order_number}";
+
+        $url = rescue(
+            fn (): string => OrderResource::getUrl('view', ['record' => $order], panel: 'admin'),
+            report: false
+        );
+
+        AdminNotificationDispatcher::notifyAdmins(
+            title: $title,
+            body: $body,
+            type: $isCompleted ? 'payment_completed' : 'payment_failed',
+            data: ['order_id' => $order->id, 'payment_id' => $payment->id],
+            actionLabel: __('View Order'),
+            actionUrl: $url,
+            status: $isCompleted ? 'success' : 'danger',
+            icon: Heroicon::OutlinedCreditCard,
+        );
     }
 }

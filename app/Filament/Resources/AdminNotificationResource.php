@@ -136,6 +136,8 @@ class AdminNotificationResource extends Resource
                         'order' => __('Orders'),
                         'low_stock_admin' => __('Low Stock'),
                         'out_of_stock_admin' => __('Out of Stock'),
+                        'payment_completed' => __('Completed'),
+                        'payment_failed' => __('Failed'),
                     ]),
             ])
             ->recordActions([
@@ -154,6 +156,12 @@ class AdminNotificationResource extends Resource
                     ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
                     ->visible(fn (UserNotification $record): bool => filled($record->data['order_id'] ?? null))
                     ->url(fn (UserNotification $record): string => OrderResource::getUrl('view', ['record' => $record->data['order_id']])),
+
+                Action::make('openProduct')
+                    ->label(__('Edit Product'))
+                    ->icon(Heroicon::OutlinedPencilSquare)
+                    ->visible(fn (UserNotification $record): bool => filled($record->data['product_id'] ?? null) && blank($record->data['order_id'] ?? null))
+                    ->url(fn (UserNotification $record): string => ProductResource::getUrl('edit', ['record' => $record->data['product_id']])),
 
                 DeleteAction::make(),
             ])

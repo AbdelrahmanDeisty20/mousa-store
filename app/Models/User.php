@@ -76,6 +76,16 @@ class User extends Authenticatable implements FilamentUser, HasName
         return $this->hasMany(\App\Models\Notification::class);
     }
 
+    public function filamentNotifications()
+    {
+        return $this->morphMany(\App\Models\FilamentDatabaseNotification::class, 'notifiable')->latest();
+    }
+
+    public function routeNotificationForDatabase($notification = null)
+    {
+        return $this->filamentNotifications();
+    }
+
     /**
      * علاقة FCM Tokens
      */

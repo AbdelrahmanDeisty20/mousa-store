@@ -4,7 +4,10 @@ namespace Tests\Feature;
 
 use App\Events\OfferCreatedForCartItems;
 use App\Events\OfferCreatedForFavorites;
+use App\Events\PaymentStatusEvent;
+use App\Filament\Livewire\AdminDatabaseNotifications;
 use App\Filament\Pages\Auth\EditProfile;
+use App\Filament\Resources\AdminNotificationResource\Pages\ListAdminNotifications;
 use App\Filament\Resources\AttributeDefinitionResource;
 use App\Filament\Resources\BannerResource;
 use App\Filament\Resources\BrandResource;
@@ -27,7 +30,9 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Contact;
 use App\Models\Favorite;
+use App\Models\FilamentDatabaseNotification;
 use App\Models\Governorate;
+use Laravel\Sanctum\Sanctum;
 use App\Models\Notification as UserNotification;
 use App\Models\Offer;
 use App\Models\Order;
@@ -499,5 +504,102 @@ class FilamentAdminPanelTest extends TestCase
 
         $mailHtml = (new OtpMail('123456', 'register', 10, 'Mousa'))->render();
         $this->assertStringContainsString('123456', $mailHtml);
+    }
+
+    public function test_filament_dashboard_database_notifications_and_api_notifications_work_together(): void
+    {
+        $gov = Governorate::firstOrFail();
+        $category = Category::create(['name_ar' => 'إكسسوارات', 'name_en' => 'Accessories', 'image' => 'c.jpg', 'sort_order' => 1]);
+        $brand = Brand::create(['name_ar' => 'نايكي', 'name_en' => 'Nike', 'image' => 'b.jpg']);
+        $product = Product::create([
+            'name_ar' => 'شنطة جيم',
+            'name_en' => 'Gym Bag',
+            'desc_ar' => 'وصف',
+            'desc_en' => 'Desc',
+            'category_id' => $category->id,
+            'brand_id' => $brand->id,
+        ]);
+        $variant = Property::create([
+            'product_id' => $product->id,
+            'price' => 350,
+            'stock' => 15,
+            'main_image' => 'bag.jpg',
+        ]);
+
+        // 1. New Order triggers both legacy `notifications` row AND Filament `filament_notifications` bell entry
+        $order = Order::create([
+            'order_number' => 'ORD-BELL-1',
+            'user_id' => $this->customer->id,
+            'total_price' => 350,
+            'status' => 'pending',
+            'user_name' => 'Ahmed',
+            'user_phone' => '01022222222',
+            'user_address' => 'Cairo',
+            'governorate_id' => $gov->id,
+        ]);
+
+        // 2. Low stock (stock hits 10) triggers low_stock_admin in both tables
+        $variant->update(['stock' => 10]);
+
+        // 3. Payment completed event triggers payment_completed in both tables
+        $payment = Payment::create([
+            'order_id' => $order->id,
+            'method' => 'credit_card',
+            'amount' => 350,
+            'status' => 'completed',
+            'transaction_id' => 'TXN-BELL-1',
+        ]);
+        PaymentStatusEvent::dispatch($payment);
+
+        $this->assertDatabaseHas('notifications', [
+            'user_id' => $this->admin->id,
+            'type' => 'order',
+        ]);
+        $this->assertDatabaseHas('notifications', [
+            'user_id' => $this->admin->id,
+            'type' => 'low_stock_admin',
+        ]);
+        $this->assertDatabaseHas('notifications', [
+            'user_id' => $this->admin->id,
+            'type' => 'payment_completed',
+        ]);
+
+        $this->assertSame(3, FilamentDatabaseNotification::where('notifiable_id', $this->admin->id)->count());
+        $this->assertSame(3, FilamentDatabaseNotification::where('notifiable_id', $this->subAdmin->id)->count());
+
+        // 4. Filament Topbar Bell Livewire Component displays unread count and can mark all read
+        $this->actingAs($this->admin);
+        Livewire::test(AdminDatabaseNotifications::class)
+            ->assertSee('3 unread notifications')
+            ->assertSet('isOpen', false)
+            ->set('isOpen', true)
+            ->assertSee('ORD-BELL-1')
+            ->call('markAllNotificationsAsRead');
+
+        $this->assertSame(
+            0,
+            FilamentDatabaseNotification::where('notifiable_id', $this->admin->id)->whereNull('read_at')->count()
+        );
+
+        // 5. Broadcast notification from Filament Notification page saves global app notification without breaking API
+        Livewire::test(ListAdminNotifications::class)
+            ->callAction('broadcast', data: [
+                'title' => 'تخفيضات نهاية الأسبوع',
+                'body' => 'خصم حتى 30% على الملابس الرياضية',
+            ])
+            ->assertHasNoActionErrors();
+
+        $this->assertDatabaseHas('notifications', [
+            'user_id' => null,
+            'title' => 'تخفيضات نهاية الأسبوع',
+            'type' => 'broadcast',
+        ]);
+
+        // 6. Frontend Customer API `/api/v1/notifications` returns untouched JSON structure including global broadcast
+        Sanctum::actingAs($this->customer);
+        $this->getJson('/api/v1/notifications')
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonFragment(['title' => 'تخفيضات نهاية الأسبوع']);
     }
 }

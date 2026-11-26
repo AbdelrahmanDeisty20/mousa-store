@@ -1519,5 +1519,10 @@
     "Theme": "المظهر",
     "Discount Percentage (%)": "نسبة الخصم (%)",
     "Enter discount percentage (e.g. 25 for 25% off)": "أدخل نسبة الخصم المئوية (مثال: 25 تعني خصم 25%)",
-    "Storefront slugs: privacy-policy, return-policy, terms-and-conditions (/terms), shipping-policy, consumer-protection": "المعرفات القياسية للمتجر: privacy-policy, return-policy, terms-and-conditions (مرتبط بـ /terms), shipping-policy, consumer-protection"
+    "Storefront slugs: privacy-policy, return-policy, terms-and-conditions (/terms), shipping-policy, consumer-protection": "المعرفات القياسية للمتجر: privacy-policy, return-policy, terms-and-conditions (مرتبط بـ /terms), shipping-policy, consumer-protection",
+    "Send Broadcast Notification": "إرسال إشعار للعملاء",
+    "Broadcast Title": "عنوان الإشعار",
+    "Broadcast Message": "نص الإشعار",
+    "Broadcast notification sent successfully": "تم إرسال الإشعار العام بنجاح",
+    "Saved to app notifications and pushed to :count device(s).": "تم حفظ الإشعار في التطبيق وإرساله إلى :count جهاز."
 }
