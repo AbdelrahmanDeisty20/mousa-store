@@ -70,7 +70,7 @@ class DummyDataSeeder extends Seeder
 
     public function run(): void
     {
-        $this->command->info("Starting fresh Mousa Store Sportswear seeding...");
+        $this->command->info("Starting fresh Mousa Store 100-product Sportswear seeding...");
 
         Schema::disableForeignKeyConstraints();
         Review::truncate();
@@ -87,7 +87,7 @@ class DummyDataSeeder extends Seeder
         ProductBanner::truncate();
         Schema::enableForeignKeyConstraints();
 
-        // 1. SPORTSWEAR HERO BANNERS
+        // 1. HERO BANNERS
         $this->command->info("\n--- Seeding Sportswear Hero Banners ---");
         $heroBanners = [
             [
@@ -126,7 +126,7 @@ class DummyDataSeeder extends Seeder
             ]);
         }
 
-        // 2. SPORTSWEAR AD BANNERS
+        // 2. PRODUCT AD BANNERS
         $this->command->info("\n--- Seeding Sportswear Product Ad Banners ---");
         $adBanners = [
             [
@@ -169,8 +169,8 @@ class DummyDataSeeder extends Seeder
             ]);
         }
 
-        // 3. SPORTSWEAR CATEGORIES (6 Main + 6 Subcategories)
-        $this->command->info("\n--- Seeding Sportswear Categories ---");
+        // 3. CATEGORIES (6 Main + 6 Subcategories = 12 Categories)
+        $this->command->info("\n--- Seeding 12 Sportswear Categories ---");
         $categoriesData = [
             [
                 'key' => 'mens',
@@ -179,8 +179,8 @@ class DummyDataSeeder extends Seeder
                 'url' => 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&auto=format&fit=crop',
                 'filename' => 'sport_cat_mens.jpg',
                 'children' => [
-                    ['name_ar' => 'تيشيرتات وتوبس الجيم', 'name_en' => 'Gym T-Shirts & Tops'],
-                    ['name_ar' => 'تريننج وبنطلونات رياضية', 'name_en' => 'Tracksuits & Joggers'],
+                    ['key' => 'mens_tops', 'name_ar' => 'تيشيرتات وتوبس الجيم', 'name_en' => 'Gym T-Shirts & Tops'],
+                    ['key' => 'mens_track', 'name_ar' => 'تريننج وبنطلونات رياضية', 'name_en' => 'Tracksuits & Joggers'],
                 ],
             ],
             [
@@ -190,8 +190,8 @@ class DummyDataSeeder extends Seeder
                 'url' => 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&auto=format&fit=crop',
                 'filename' => 'sport_cat_womens.jpg',
                 'children' => [
-                    ['name_ar' => 'ليجنز وتوبس رياضية', 'name_en' => 'Leggings & Sports Tops'],
-                    ['name_ar' => 'أطقم يوجا وبيلاتس', 'name_en' => 'Yoga & Pilates Sets'],
+                    ['key' => 'womens_leggings', 'name_ar' => 'ليجنز وتوبس رياضية', 'name_en' => 'Leggings & Sports Tops'],
+                    ['key' => 'womens_yoga', 'name_ar' => 'أطقم يوجا وبيلاتس', 'name_en' => 'Yoga & Pilates Sets'],
                 ],
             ],
             [
@@ -201,8 +201,8 @@ class DummyDataSeeder extends Seeder
                 'url' => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop',
                 'filename' => 'sport_cat_shoes.jpg',
                 'children' => [
-                    ['name_ar' => 'أحذية جري ومشي', 'name_en' => 'Running Sneakers'],
-                    ['name_ar' => 'أحذية كرة قدم وتدريب', 'name_en' => 'Football & Gym Shoes'],
+                    ['key' => 'shoes_run', 'name_ar' => 'أحذية جري ومشي', 'name_en' => 'Running Sneakers'],
+                    ['key' => 'shoes_football', 'name_ar' => 'أحذية كرة قدم وتدريب', 'name_en' => 'Football & Gym Shoes'],
                 ],
             ],
             [
@@ -249,18 +249,19 @@ class DummyDataSeeder extends Seeder
             $createdCategories[$c['key']] = $parent;
 
             foreach ($c['children'] as $child) {
-                Category::create([
+                $childCat = Category::create([
                     'name_ar' => $child['name_ar'],
                     'name_en' => $child['name_en'],
                     'image' => $c['filename'],
                     'sort_order' => $sortCounter++,
                     'parent_id' => $parent->id,
                 ]);
+                $createdCategories[$child['key']] = $childCat;
             }
         }
 
-        // 4. SPORTSWEAR BRANDS
-        $this->command->info("\n--- Seeding Sportswear Brands ---");
+        // 4. BRANDS
+        $this->command->info("\n--- Seeding 6 Sportswear Brands ---");
         $brandsData = [
             ['name_ar' => 'نايكي', 'name_en' => 'Nike', 'url' => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&auto=format&fit=crop', 'filename' => 'sport_brand_nike.jpg'],
             ['name_ar' => 'أديداس', 'name_en' => 'Adidas', 'url' => 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=400&auto=format&fit=crop', 'filename' => 'sport_brand_adidas.jpg'],
@@ -283,21 +284,27 @@ class DummyDataSeeder extends Seeder
             $createdBrands[$b['name_en']] = $brand;
         }
 
-        // 5. SPORTSWEAR IMAGES POOL
-        $this->command->info("\n--- Downloading Sportswear Product Images ---");
+        // 5. SPORTSWEAR IMAGE POOL (18 verified images for main_image + sub-gallery images)
+        $this->command->info("\n--- Downloading 18 Sportswear Product & Gallery Images ---");
         $imageUrls = [
-            'tshirt' => 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&auto=format&fit=crop',
-            'hoodie' => 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600&auto=format&fit=crop',
-            'joggers' => 'https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=600&auto=format&fit=crop',
-            'womens_set' => 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&auto=format&fit=crop',
-            'jacket' => 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&auto=format&fit=crop',
-            'shoe_red' => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop',
-            'shoe_white' => 'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=600&auto=format&fit=crop',
-            'shoe_run' => 'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=600&auto=format&fit=crop',
-            'jersey' => 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop',
-            'gym_bag' => 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop',
-            'cap' => 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600&auto=format&fit=crop',
-            'rack' => 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&auto=format&fit=crop',
+            'tshirt_1'     => 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&auto=format&fit=crop',
+            'tshirt_2'     => 'https://images.unsplash.com/photo-1581655353564-df123a1eb820?w=600&auto=format&fit=crop',
+            'hoodie_1'     => 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=600&auto=format&fit=crop',
+            'hoodie_2'     => 'https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=600&auto=format&fit=crop',
+            'joggers'      => 'https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=600&auto=format&fit=crop',
+            'womens_set'   => 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&auto=format&fit=crop',
+            'womens_yoga'  => 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&auto=format&fit=crop',
+            'jacket'       => 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&auto=format&fit=crop',
+            'shoe_red'     => 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&auto=format&fit=crop',
+            'shoe_white'   => 'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=600&auto=format&fit=crop',
+            'shoe_run'     => 'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=600&auto=format&fit=crop',
+            'shoe_blue'    => 'https://images.unsplash.com/photo-1539185441755-769473a23570?w=600&auto=format&fit=crop',
+            'shoe_black'   => 'https://images.unsplash.com/photo-1551107696-a4b0c5a0d9a2?w=600&auto=format&fit=crop',
+            'jersey'       => 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop',
+            'gym_bag'      => 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&auto=format&fit=crop',
+            'cap'          => 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=600&auto=format&fit=crop',
+            'rack'         => 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=600&auto=format&fit=crop',
+            'bottle_gear'  => 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=600&auto=format&fit=crop',
         ];
 
         $imageFiles = [];
@@ -307,378 +314,350 @@ class DummyDataSeeder extends Seeder
             $imageFiles[$key] = $fn;
         }
 
-        // 6. SEED 32 SPORTSWEAR PRODUCTS (WITH MULTI-VARIANT COLORS/SIZES & VARIED PRICES)
-        $this->command->info("\n--- Seeding 32 Sportswear Products ---");
+        // Category-specific gallery pools so every product gets main + 3 sub/gallery images
+        $galleryPools = [
+            'mens'            => [$imageFiles['tshirt_1'], $imageFiles['tshirt_2'], $imageFiles['joggers'], $imageFiles['rack']],
+            'mens_tops'       => [$imageFiles['tshirt_2'], $imageFiles['tshirt_1'], $imageFiles['rack'], $imageFiles['hoodie_2']],
+            'mens_track'      => [$imageFiles['joggers'], $imageFiles['hoodie_1'], $imageFiles['jacket'], $imageFiles['tshirt_1']],
+            'womens'          => [$imageFiles['womens_set'], $imageFiles['womens_yoga'], $imageFiles['hoodie_2'], $imageFiles['rack']],
+            'womens_leggings' => [$imageFiles['womens_set'], $imageFiles['womens_yoga'], $imageFiles['tshirt_2'], $imageFiles['hoodie_2']],
+            'womens_yoga'     => [$imageFiles['womens_yoga'], $imageFiles['womens_set'], $imageFiles['bottle_gear'], $imageFiles['hoodie_2']],
+            'shoes'           => [$imageFiles['shoe_red'], $imageFiles['shoe_white'], $imageFiles['shoe_black'], $imageFiles['shoe_blue']],
+            'shoes_run'       => [$imageFiles['shoe_run'], $imageFiles['shoe_blue'], $imageFiles['shoe_white'], $imageFiles['shoe_red']],
+            'shoes_football'  => [$imageFiles['shoe_black'], $imageFiles['shoe_red'], $imageFiles['jersey'], $imageFiles['shoe_run']],
+            'jerseys'         => [$imageFiles['jersey'], $imageFiles['tshirt_2'], $imageFiles['tshirt_1'], $imageFiles['shoe_black']],
+            'outerwear'       => [$imageFiles['hoodie_1'], $imageFiles['hoodie_2'], $imageFiles['jacket'], $imageFiles['joggers']],
+            'gear'            => [$imageFiles['gym_bag'], $imageFiles['cap'], $imageFiles['bottle_gear'], $imageFiles['shoe_white']],
+        ];
 
-        $productsSpec = [
-            [
-                'name_ar' => 'تريننج رياضي نايكي دراي-فت أكاديمي كامل',
-                'name_en' => 'Nike Dri-FIT Academy Full Tracksuit',
-                'desc_ar' => 'تريننج رجالي قطعتين بتقنية طرد العرق وقصة سليم فيت مثالية للتمرين والجري',
-                'desc_en' => 'Two-piece men training tracksuit featuring moisture-wicking Dri-FIT fabric and zip pockets',
-                'brand' => 'Nike',
-                'cat' => 'mens',
-                'img' => $imageFiles['joggers'],
-                'variants' => [
-                    [
-                        'price' => 2850.00,
-                        'stock' => 30,
-                        'discount' => 15,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'Black', 'value_ar' => 'أسود'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => 'Medium', 'value_ar' => 'متوسط'],
-                        ],
-                    ],
-                    [
-                        'price' => 2950.00,
-                        'stock' => 24,
-                        'discount' => 10,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'Navy Blue', 'value_ar' => 'كحلي'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => 'Large', 'value_ar' => 'كبير'],
-                        ],
-                    ],
+        $colorChoices = [
+            ['en' => 'Black', 'ar' => 'أسود'],
+            ['en' => 'White', 'ar' => 'أبيض'],
+            ['en' => 'Navy Blue', 'ar' => 'كحلي'],
+            ['en' => 'Red', 'ar' => 'أحمر'],
+            ['en' => 'Charcoal Gray', 'ar' => 'رمادي فحمي'],
+            ['en' => 'Olive Green', 'ar' => 'أخضر زيتوني'],
+            ['en' => 'Royal Blue', 'ar' => 'أزرق ملكي'],
+        ];
+
+        $apparelSizes = [
+            ['en' => 'Small', 'ar' => 'صغير (S)'],
+            ['en' => 'Medium', 'ar' => 'متوسط (M)'],
+            ['en' => 'Large', 'ar' => 'كبير (L)'],
+            ['en' => 'XL', 'ar' => 'كبير جداً (XL)'],
+        ];
+
+        $shoeSizes = [
+            ['en' => '40', 'ar' => '40'],
+            ['en' => '41', 'ar' => '41'],
+            ['en' => '42', 'ar' => '42'],
+            ['en' => '43', 'ar' => '43'],
+            ['en' => '44', 'ar' => '44'],
+        ];
+
+        $gearSizes = [
+            ['en' => 'One Size', 'ar' => 'مقاس موحد'],
+            ['en' => 'Medium (40L)', 'ar' => 'متوسط (40 لتر)'],
+            ['en' => 'Large (60L)', 'ar' => 'كبير (60 لتر)'],
+        ];
+
+        $materials = [
+            ['en' => 'Dri-FIT Polyester', 'ar' => 'بوليستر دراي-فت'],
+            ['en' => 'Stretch Cotton', 'ar' => 'قطن مرن'],
+            ['en' => 'Breathable Mesh', 'ar' => 'شبك عالي التهوية'],
+            ['en' => 'Tech Fleece', 'ar' => 'فليس رياضي دافئ'],
+        ];
+
+        $fits = [
+            ['en' => 'Slim Fit', 'ar' => 'سليم فيت'],
+            ['en' => 'Regular Fit', 'ar' => 'قصة مريحة'],
+            ['en' => 'Athletic Fit', 'ar' => 'قصة رياضية'],
+        ];
+
+        // 6. BUILD EXACTLY 100 PRODUCTS DISTRIBUTED ACROSS ALL 12 CATEGORIES
+        $this->command->info("\n--- Seeding 100 Distributed Sportswear Products ---");
+
+        $brandNames = array_keys($createdBrands);
+        $categoryCatalog = [
+            'mens' => [
+                'base_price' => 1450,
+                'items' => [
+                    ['طقم تدريب رجالي متكامل', 'Men Complete Training Outfit'],
+                    ['طقم جري صيفي خفيف', 'Men Summer Running Kit'],
+                    ['بدلة رياضية كلاسيك رجالي', 'Men Classic Sport Tracksuit'],
+                    ['طقم تمارين كارديو رجالي', 'Men Cardio Performance Set'],
+                    ['بدلة تدريب يومي مريحة', 'Men Daily Gym Warmup Suit'],
+                    ['طقم أكتيف وير رجالي بجيوب', 'Men Utility Activewear Set'],
+                    ['طقم جيم احترافي سريع الجفاف', 'Men Quick-Dry Pro Gym Kit'],
+                    ['بدلة رياضية خفيفة للمشي', 'Men Lightweight Walking Suit'],
+                    ['طقم رياضي سليم فيت رجالي', 'Men Slim Fit Athletic Set'],
                 ],
             ],
-            [
-                'name_ar' => 'حذاء جري نايكي اير زوم بيغاسوس 41',
-                'name_en' => 'Nike Air Zoom Pegasus 41 Running Shoes',
-                'desc_ar' => 'حذاء جري خفيف الوزن بوحدة Air Zoom مزدوجة لامتصاص الصدمات على الأسفلت والتراك',
-                'desc_en' => 'Lightweight road running sneaker with dual Air Zoom units and breathable mesh upper',
-                'brand' => 'Nike',
-                'cat' => 'shoes',
-                'img' => $imageFiles['shoe_red'],
-                'variants' => [
-                    [
-                        'price' => 4850.00,
-                        'stock' => 20,
-                        'discount' => 12,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'Red', 'value_ar' => 'أحمر'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => '42', 'value_ar' => '42'],
-                        ],
-                    ],
-                    [
-                        'price' => 5150.00,
-                        'stock' => 15,
-                        'discount' => 10,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'Black', 'value_ar' => 'أسود'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => '44', 'value_ar' => '44'],
-                        ],
-                    ],
+            'mens_tops' => [
+                'base_price' => 680,
+                'items' => [
+                    ['تيشيرت جيم دراي-فت سليم', 'Men Dri-FIT Slim Gym Tee'],
+                    ['تيشيرت كومبريشن داعم للعضلات', 'Compression Muscle Support Top'],
+                    ['تانك توب تدريب بفتحة واسعة', 'Sleeveless Muscle Training Tank'],
+                    ['تيشيرت بولو رياضي مسامي', 'Breathable Athletic Club Polo'],
+                    ['تيشيرت جري ليلي عاكس للضوء', 'Reflective Night Running T-Shirt'],
+                    ['تيشيرت قطن ناعم للتمرين اليومي', 'Soft Stretch Everyday Workout Tee'],
+                    ['تيشيرت شبكي للكارديو واللياقة', 'Mesh Panel Cardio Training Top'],
+                    ['تيشيرت كم طويل دافئ للشتاء', 'Thermal Long-Sleeve Training Top'],
+                    ['تيشيرت كروس فت مقاوم للتعرق', 'Heavy-Duty CrossFit Workout Tee'],
                 ],
             ],
-            [
-                'name_ar' => 'تيشيرت جيم أديداس أيروريدي سليم فيت',
-                'name_en' => 'Adidas AEROREADY Training Slim T-Shirt',
-                'desc_ar' => 'تيشيرت تدريب عالي التهوية بخامة شبكية تمنع احتباس الحرارة أثناء رفع الأثقال والكارديو',
-                'desc_en' => 'Moisture-absorbing workout tee with underarm gussets for unrestricted range of motion',
-                'brand' => 'Adidas',
-                'cat' => 'mens',
-                'img' => $imageFiles['tshirt'],
-                'variants' => [
-                    [
-                        'price' => 890.00,
-                        'stock' => 55,
-                        'discount' => 20,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'White', 'value_ar' => 'أبيض'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => 'Large', 'value_ar' => 'كبير'],
-                        ],
-                    ],
-                    [
-                        'price' => 940.00,
-                        'stock' => 40,
-                        'discount' => 15,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'Black', 'value_ar' => 'أسود'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => 'XL', 'value_ar' => 'كبير جداً'],
-                        ],
-                    ],
+            'mens_track' => [
+                'base_price' => 1120,
+                'items' => [
+                    ['بنطلون جوجرز رياضي سليم فيت', 'Tapered Slim-Fit Sport Joggers'],
+                    ['تريننج تدريب بسوستة كاملة', 'Full-Zip Pro Training Tracksuit'],
+                    ['شورت جري 7 بوصة ببطانة', '7-Inch Lined Road Running Shorts'],
+                    ['بنطلون تدريب فليس شتوي', 'Brushed Fleece Winter Track Pants'],
+                    ['شورت جيم خفيف بجيوب بسوستة', 'Zip-Pocket Lightweight Gym Shorts'],
+                    ['بنطلون كارغو رياضي مرن', 'Stretch Athletic Cargo Pants'],
+                    ['شورت باسكت بول واسع مريح', 'Mesh Breathable Basketball Shorts'],
+                    ['بنطلون تسخين سريع الجفاف', 'Quick-Dry Track Warmup Pants'],
                 ],
             ],
-            [
-                'name_ar' => 'طقم أكتيف وير نسائي أديداس ستوديو قطعتين',
-                'name_en' => 'Adidas Studio Seamless Women 2-Piece Set',
-                'desc_ar' => 'طقم ليجينز عالي الخصر مع توب داعم بخامة مرنة ناعمة غير شفافة لليوجا والجيم',
-                'desc_en' => 'High-waisted squat-proof leggings and supportive longline bra crafted from 4-way stretch knit',
-                'brand' => 'Adidas',
-                'cat' => 'womens',
-                'img' => $imageFiles['womens_set'],
-                'variants' => [
-                    [
-                        'price' => 1790.00,
-                        'stock' => 28,
-                        'discount' => 15,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'Olive Green', 'value_ar' => 'أخضر زيتوني'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => 'Small', 'value_ar' => 'صغير'],
-                        ],
-                    ],
-                    [
-                        'price' => 1890.00,
-                        'stock' => 25,
-                        'discount' => null,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'Black', 'value_ar' => 'أسود'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => 'Medium', 'value_ar' => 'متوسط'],
-                        ],
-                    ],
+            'womens' => [
+                'base_price' => 1550,
+                'items' => [
+                    ['طقم أكتيف وير نسائي قطعتين', 'Women 2-Piece Seamless Active Set'],
+                    ['طقم جري نسائي خفيف الوزن', 'Women Ultralight Running Set'],
+                    ['طقم تدريب حريمي دراي-فت', 'Women Dri-FIT Studio Training Set'],
+                    ['طقم رياضي نسائي بسوستة أمامية', 'Women Front-Zip Sport Tracksuit'],
+                    ['طقم تمارين منزلية مرن جداً', 'Women 4-Way Stretch Home Gym Set'],
+                    ['طقم أكتيف وير صيفي بفتحات تهوية', 'Women Mesh-Vent Summer Fitness Kit'],
+                    ['طقم تدريب نسائي ناعم الملمس', 'Women Cloud-Soft Workout Outfit'],
+                    ['طقم رياضي أنيق للمشي السريع', 'Women Power-Walk Track Set'],
                 ],
             ],
-            [
-                'name_ar' => 'هودي تدريب أندر آرمور أرمور فليس بسوستة',
-                'name_en' => 'Under Armour Armour Fleece Training Hoodie',
-                'desc_ar' => 'سويت شيرت رياضي خفيف ببطانة فليس ناعمة تحفظ الدفء بدون إعاقة الحركة في الشتاء',
-                'desc_en' => 'Warm brushed-inner fleece athletic hoodie with breathable quick-dry outer finish',
-                'brand' => 'Under Armour',
-                'cat' => 'outerwear',
-                'img' => $imageFiles['hoodie'],
-                'variants' => [
-                    [
-                        'price' => 2150.00,
-                        'stock' => 32,
-                        'discount' => 10,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'Charcoal Gray', 'value_ar' => 'رمادي فحمي'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => 'Large', 'value_ar' => 'كبير'],
-                        ],
-                    ],
-                    [
-                        'price' => 2290.00,
-                        'stock' => 20,
-                        'discount' => null,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'Black', 'value_ar' => 'أسود'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => 'XL', 'value_ar' => 'كبير جداً'],
-                        ],
-                    ],
+            'womens_leggings' => [
+                'base_price' => 890,
+                'items' => [
+                    ['ليجنز عالي الخصر غير شفاف', 'High-Waist Squat-Proof Leggings'],
+                    ['سبورتس برا بدعم متوسط', 'Mid-Impact Racerback Sports Bra'],
+                    ['ليجنز بجيب جانبي للموبايل', 'Side-Pocket Sculpt Fitness Leggings'],
+                    ['كروب توب تدريب نسائي مرن', 'Seamless Cropped Gym Training Top'],
+                    ['شورت بايكر نسائي عالي الخصر', 'High-Rise Cycling Biker Shorts'],
+                    ['توب رياضي بظهر متقاطع', 'Cross-Back Breathable Studio Tank'],
+                    ['ليجنز كومبريشن للجري الطويل', 'Compression Pocket Running Leggings'],
+                    ['سبورتس برا ببطانة قابلة للإزالة', 'Padded High-Support Gym Bra'],
                 ],
             ],
-            [
-                'name_ar' => 'حذاء أديداس ألترابوست لايت الرياضي',
-                'name_en' => 'Adidas Ultraboost Light Running Sneakers',
-                'desc_ar' => 'أخف حذاء ألترابوست بإرجاع طاقة فائق مع نعل كونتيننتال مقاوم للانزلاق',
-                'desc_en' => 'Ultra-responsive Light BOOST midsole paired with Continental rubber outsole grip',
-                'brand' => 'Adidas',
-                'cat' => 'shoes',
-                'img' => $imageFiles['shoe_white'],
-                'variants' => [
-                    [
-                        'price' => 5450.00,
-                        'stock' => 18,
-                        'discount' => 15,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'White', 'value_ar' => 'أبيض'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => '41', 'value_ar' => '41'],
-                        ],
-                    ],
-                    [
-                        'price' => 5650.00,
-                        'stock' => 14,
-                        'discount' => 10,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'Core Black', 'value_ar' => 'أسود'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => '43', 'value_ar' => '43'],
-                        ],
-                    ],
+            'womens_yoga' => [
+                'base_price' => 1320,
+                'items' => [
+                    ['طقم يوجا سيملس ناعم 3 قطع', '3-Piece Seamless Yoga Studio Set'],
+                    ['جمبسوت بيلاتس مرن قطعة واحدة', 'One-Piece Sculpt Pilates Jumpsuit'],
+                    ['بنطلون يوجا واسع الأرجل مريح', 'Flared High-Waist Yoga Pants'],
+                    ['توب بيلاتس بأكمام طويلة وفتحة إبهام', 'Thumbhole Long-Sleeve Pilates Top'],
+                    ['طقم استوديو بيلاتس باستيل', 'Pastel Ribbed Studio Yoga Kit'],
+                    ['بلوفر يوجا خفيف بعد التمرين', 'Relaxed Post-Workout Studio Wrap'],
+                    ['شورت يوجا ناعم بدون خياطة', 'Seamless Soft Stretch Yoga Shorts'],
+                    ['طقم يوجا قطني مسامي للصباح', 'Breathable Cotton Morning Yoga Set'],
                 ],
             ],
-            [
-                'name_ar' => 'طقم كرة قدم بوما ألترا ماتش داي (تيشيرت + شورت)',
-                'name_en' => 'Puma Ultra Match-Day Football Kit Set',
-                'desc_ar' => 'طقم كرة قدم احترافي بخامة dryCELL فائقة التهوية وخفة الوزن للملاعب المفتوحة',
-                'desc_en' => 'Pro breathable dryCELL football jersey and matching shorts engineered for 90-minute comfort',
-                'brand' => 'Puma',
-                'cat' => 'jerseys',
-                'img' => $imageFiles['jersey'],
-                'variants' => [
-                    [
-                        'price' => 1450.00,
-                        'stock' => 45,
-                        'discount' => 25,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'Blue', 'value_ar' => 'أزرق'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => 'Medium', 'value_ar' => 'متوسط'],
-                        ],
-                    ],
-                    [
-                        'price' => 1550.00,
-                        'stock' => 30,
-                        'discount' => 15,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'Red', 'value_ar' => 'أحمر'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => 'Large', 'value_ar' => 'كبير'],
-                        ],
-                    ],
+            'shoes' => [
+                'base_price' => 3650,
+                'items' => [
+                    ['سنيكرز تدريب شامل للرجال والنساء', 'All-Round Cross-Training Sneakers'],
+                    ['حذاء جيم مسطح الكعب لرفع الأثقال', 'Flat-Heel Weightlifting Gym Shoes'],
+                    ['سنيكرز لايف ستايل رياضي مريح', 'Everyday Cushion Sport Sneakers'],
+                    ['حذاء تدريب كروس فت برباط ثابت', 'Lockdown Fit CrossFit Trainers'],
+                    ['سنيكرز هوائي ببطانة مزدوجة', 'Dual-Air Cushion Training Shoes'],
+                    ['حذاء رياضي خفيف للسفر والمشي', 'Ultralight Knit Travel Sneakers'],
+                    ['حذاء تنس بأرضية مقاومة للتآكل', 'All-Court Durable Tennis Shoes'],
+                    ['حذاء تدريب صالات داخلية مانع للانزلاق', 'Non-Marking Indoor Court Trainers'],
                 ],
             ],
-            [
-                'name_ar' => 'جاكيت جري مضاد للرياح والمطر نيو بالانس',
-                'name_en' => 'New Balance Impact Run Windbreaker Jacket',
-                'desc_ar' => 'جاكيت رياضي خفيف جداً طارد للماء والرياح مع فتحات تهوية خلفية وشرائط عاكسة للضوء',
-                'desc_en' => 'Water-resistant packable running windbreaker with back vent and 360-degree reflective trims',
-                'brand' => 'New Balance',
-                'cat' => 'outerwear',
-                'img' => $imageFiles['jacket'],
-                'variants' => [
-                    [
-                        'price' => 2650.00,
-                        'stock' => 22,
-                        'discount' => 18,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'Black', 'value_ar' => 'أسود'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => 'Large', 'value_ar' => 'كبير'],
-                        ],
-                    ],
-                    [
-                        'price' => 2750.00,
-                        'stock' => 17,
-                        'discount' => null,
-                        'attributes' => [
-                            ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => 'Green', 'value_ar' => 'أخضر'],
-                            ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => 'XL', 'value_ar' => 'كبير جداً'],
-                        ],
-                    ],
+            'shoes_run' => [
+                'base_price' => 4150,
+                'items' => [
+                    ['حذاء جري بيغاسوس برو فوم', 'Pegasus Pro React Running Shoes'],
+                    ['حذاء ألترابوست لايت للماراثون', 'Ultraboost Light Marathon Runners'],
+                    ['حذاء فريش فوم للمشي الطويل', 'Fresh Foam Distance Walking Shoes'],
+                    ['حذاء نيترو السريع للجري اليومي', 'NITRO Speed Daily Road Trainers'],
+                    ['حذاء جري شبكي فائق التهوية', 'Breeze Mesh Summer Running Sneakers'],
+                    ['حذاء ترايل للجري في الطرق الوعرة', 'All-Terrain Grip Trail Runners'],
+                    ['حذاء جري خفيف الوزن للسباقات', 'Carbon-Plate Race Day Runners'],
+                    ['حذاء مشي طبي بوسادة قدم مريحة', 'CloudStride Cushioned Walking Shoes'],
+                ],
+            ],
+            'shoes_football' => [
+                'base_price' => 2950,
+                'items' => [
+                    ['حذاء كرة قدم ترتان نجيل صناعي', 'Synthe-Turf Precision Football Boots'],
+                    ['ستارز كرة قدم ملاعب عشبية', 'Firm-Ground Speed Soccer Cleats'],
+                    ['حذاء خماسي داخل الصالات فلات', 'Indoor Futsal Grip Gum-Sole Shoes'],
+                    ['حذاء تحكم بالكرة بمقدمة محببة', 'Textured Strike Control Football Boots'],
+                    ['ستارز خفيف الوزن للاعب الجناح', 'Featherlight Wing Attack Cleats'],
+                    ['حذاء تدريب كرة قدم مبطن الكعب', 'Padded-Heel Football Training Turf'],
+                    ['حذاء ملاعب رملية ونجيل مقاوم', 'Durable Multi-Surface Soccer Turf'],
+                    ['ستارز كلاسيك جلد صناعي مرن', 'Classic Leather-Feel Football Boots'],
+                ],
+            ],
+            'jerseys' => [
+                'base_price' => 1150,
+                'items' => [
+                    ['طقم كرة قدم ماتش داي كامل', 'Pro Match-Day Football Kit Set'],
+                    ['تيشيرت كرة قدم نسخة الاستاد', 'Stadium Edition Breathable Jersey'],
+                    ['تيشيرت حارس مرمى بأكمام طويلة', 'Padded Goalkeeper Long-Sleeve Kit'],
+                    ['شورت كرة قدم خفيف بتهوية جانبية', 'Side-Mesh Pro Football Shorts'],
+                    ['طقم تدريب أندية بدون أكمام', 'Club Training Sleeveless Bib Set'],
+                    ['تيشيرت منتخب كلاسيك ياقة دائرية', 'National Retro Crewneck Football Shirt'],
+                    ['سويت شيرت تسخين قبل المباراة', 'Pre-Match Quarter-Zip Training Top'],
+                    ['شراب كرة قدم طويل داعم للساق', 'Over-Calf Cushion Football Socks'],
+                ],
+            ],
+            'outerwear' => [
+                'base_price' => 1950,
+                'items' => [
+                    ['هودي تك فليس رياضي بسوستة', 'Tech Fleece Zip Athletic Hoodie'],
+                    ['جاكيت جري مضاد للرياح والمطر', 'Water-Repellent Running Windbreaker'],
+                    ['بلوفر كلوب فليس قطني دافئ', 'Club Fleece Pullover Sport Hoodie'],
+                    ['سويت شيرت بنصف سوستة وياقة عالية', 'Half-Zip Stand-Collar Track Jacket'],
+                    ['فيست تدريب شتوي مبطن خفيف', 'Insulated Padded Running Gilet'],
+                    ['جاكيت تدريب تراك ثري سترايبس', 'Signature Track Warmup Jacket'],
+                    ['هودي أوفرسايز للتسخين والشتاء', 'Oversized Heavyweight Gym Hoodie'],
+                    ['جاكيت مطر خفيف قابل للطي للجري', 'Packable Storm-Proof Sport Jacket'],
+                    ['كارديجان رياضي مبطن للتمرين الخارجي', 'Thermal Outdoor Active Track Coat'],
+                ],
+            ],
+            'gear' => [
+                'base_price' => 420,
+                'items' => [
+                    ['شنطة جيم دفل بجيب منفصل للأحذية', 'Ventilated Shoe-Pocket Gym Duffel'],
+                    ['كاب جري مسامي خفيف الوزن', 'Laser-Perforated Runner Sports Cap'],
+                    ['طقم 3 أزواج شرابات جيم مبطنة', '3-Pack Terry Cushioned Crew Socks'],
+                    ['قفازات رفع أثقال جلدية برباط معصم', 'Leather-Palm Wrist-Wrap Gym Gloves'],
+                    ['حقيبة ظهر رياضية مقاومة للماء 30 لتر', 'Water-Resistant 30L Sport Backpack'],
+                    ['حزام خصر رياضي لحمل الموبايل أثناء الجري', 'Bounce-Free Phone Waist Running Belt'],
+                    ['رباط رأس ومعصم رياضي ممتص للعرق', 'Moisture-Wicking Sweatband Kit'],
+                    ['شنطة كتف رياضية خفيفة للتمرين السريع', 'Compact Crossbody Gym Sling Bag'],
+                    ['زجاجة مياه رياضية معزولة 750 مل', 'Insulated 750ml Sport Water Bottle'],
                 ],
             ],
         ];
 
-        $singleVariantProducts = [
-            ['تيشيرت كومبريشن أندر آرمور هيت جير', 'Under Armour HeatGear Compression Tee', 'تيشيرت ضاغط يدعم العضلات ويحافظ على برودة الجسم طوال التمرين', 'Ultra-tight second-skin compression shirt with mesh underarm ventilation panels', 'Under Armour', 'mens', $imageFiles['tshirt'], 1180.00, 10, ['Color' => ['ar' => 'أسود', 'en' => 'Black'], 'Size' => ['ar' => 'متوسط', 'en' => 'Medium']]],
-            ['بنطلون رياضي بوما سليم فيت تيبرد', 'Puma Essentials Tapered Sweatpants', 'بنطلون رياضي قطن مع بوليستر بخصر مطاطي وجيوب جانبية بسوستة', 'Soft cotton-blend tapered athletic joggers with ribbed cuffs and zip pockets', 'Puma', 'mens', $imageFiles['joggers'], 1390.00, 15, ['Color' => ['ar' => 'رمادي', 'en' => 'Gray'], 'Size' => ['ar' => 'كبير', 'en' => 'Large']]],
-            ['شورت تدريب نايكي فليكس سترايد 7 بوصة', 'Nike Flex Stride 7" Running Shorts', 'شورت جري خفيف الوزن مع بطانة داخلية وجيب خلفي آمن للموبايل', 'Breathable 7-inch running shorts featuring brief liner and zippered back phone pocket', 'Nike', 'mens', $imageFiles['joggers'], 980.00, null, ['Color' => ['ar' => 'كحلي', 'en' => 'Navy'], 'Size' => ['ar' => 'كبير', 'en' => 'Large']]],
-            ['تانك توب جيم ريبوك قطن سترتش', 'Reebok Identity Gym Sleeveless Tank', 'تانك توب مريح بفتحة واسعة لتمارين الكتف والظهر والجيم الصيفي', 'Soft cotton-blend sleeveless workout tank built for summer and strength sessions', 'Reebok', 'mens', $imageFiles['tshirt'], 640.00, 12, ['Color' => ['ar' => 'أبيض', 'en' => 'White'], 'Size' => ['ar' => 'متوسط', 'en' => 'Medium']]],
-            ['بولو رياضي أديداس كلوب للتنس والجولف', 'Adidas Club Tennis Breathable Polo', 'تيشيرت بولو رياضي أنيق بياقة كلاسيكية وخامة سريعة الجفاف', 'Classic athletic polo crafted from recycled quick-dry Climalite jersey fabric', 'Adidas', 'mens', $imageFiles['rack'], 1520.00, null, ['Color' => ['ar' => 'أبيض', 'en' => 'White'], 'Size' => ['ar' => 'كبير جداً', 'en' => 'XL']]],
-            ['ليجنز نسائي نايكي ون عالي الخصر', 'Nike One High-Waisted Sculpt Leggings', 'ليجنز رياضي غير شفاف يدعم الخصر ويوفر راحة تامة طوال اليوم', 'Contoured high-rise fitness leggings with hidden waistband pocket and sweat-wicking tech', 'Nike', 'womens', $imageFiles['womens_set'], 1650.00, 20, ['Color' => ['ar' => 'أسود', 'en' => 'Black'], 'Size' => ['ar' => 'متوسط', 'en' => 'Medium']]],
-            ['سبورتس برا بوما ميد إمباكت للكارديو', 'Puma Fit Mid-Impact Sports Bra', 'حمالة صدر رياضية بدعم متوسط وشرائط ظهر متقاطعة لثبات مثالي', 'Supportive racerback mid-impact sports bra with breathable power-mesh lining', 'Puma', 'womens', $imageFiles['womens_set'], 850.00, null, ['Color' => ['ar' => 'وردي', 'en' => 'Rose Pink'], 'Size' => ['ar' => 'صغير', 'en' => 'Small']]],
-            ['تيشيرت تدريب حريمي أندر آرمور كروس باك', 'Under Armour Tech Twist V-Neck Tee', 'تيشيرت حريمي ناعم وخفيف جداً يجف بسرعة فائقة أثناء التمرين', 'Loose ultra-soft UA Tech activewear tee with natural cotton-like feel', 'Under Armour', 'womens', $imageFiles['womens_set'], 920.00, 15, ['Color' => ['ar' => 'أزرق سماوي', 'en' => 'Sky Blue'], 'Size' => ['ar' => 'متوسط', 'en' => 'Medium']]],
-            ['سويت شيرت نسائي أوفرسايز ريبوك كلاسيك', 'Reebok Classic Oversized Active Sweatshirt', 'بلوفر رياضي مريح بقصة عصرية واسعة مثالي قبل وبعد الجيم', 'Cozy oversized fleece crew sweatshirt ideal for studio warm-ups and street style', 'Reebok', 'womens', $imageFiles['hoodie'], 1480.00, 10, ['Color' => ['ar' => 'بيج', 'en' => 'Beige'], 'Size' => ['ar' => 'متوسط', 'en' => 'Medium']]],
-            ['شورت بايكر نسائي نيو بالانس هامونيك', 'New Balance Harmony Bike Shorts', 'شورت رياضي عالي الخصر لركوب الدراجات واليوجا والجري', 'Smooth high-rise compression biker shorts designed for cycling and studio sessions', 'New Balance', 'womens', $imageFiles['womens_set'], 790.00, null, ['Color' => ['ar' => 'أخضر', 'en' => 'Green'], 'Size' => ['ar' => 'صغير', 'en' => 'Small']]],
-            ['حذاء نيو بالانس 1080v13 فوم فريش للجري', 'New Balance Fresh Foam X 1080v13 Shoes', 'أعلى مستوى من التبطين الناعم للماراثون والمشي لمسافات طويلة', 'Plush Fresh Foam X cushioning engineered for daily high-mileage comfort', 'New Balance', 'shoes', $imageFiles['shoe_run'], 5290.00, 12, ['Color' => ['ar' => 'أبيض/رمادي', 'en' => 'White/Gray'], 'Size' => ['ar' => '43', 'en' => '43']]],
-            ['حذاء ريبوك نانو X4 لرفع الأثقال والكروس فت', 'Reebok Nano X4 Cross-Training Shoes', 'حذاء جيم ثابت ومسطح الكعب يمنحك أقصى ثبات أثناء السكوات والأثقال', 'Stable lifting heel and Flexweave knit upper built for HIIT and strength workouts', 'Reebok', 'shoes', $imageFiles['shoe_white'], 3890.00, null, ['Color' => ['ar' => 'أبيض', 'en' => 'White'], 'Size' => ['ar' => '42', 'en' => '42']]],
-            ['حذاء كرة قدم نايكي ميركوريال فيبور 15 ترتان', 'Nike Mercurial Vapor 15 Turf Football Boots', 'حذاء ملاعب نجيل صناعي بنعل مطاطي قوي للتحكم بالكرة والسرعة', 'Low-profile synthetic turf soccer cleats featuring Zoom Air heel cushioning', 'Nike', 'shoes', $imageFiles['shoe_red'], 3450.00, 15, ['Color' => ['ar' => 'أحمر/أسود', 'en' => 'Red/Black'], 'Size' => ['ar' => '42', 'en' => '42']]],
-            ['حذاء جري بوما فيلوسيتي نيترو 3', 'Puma Velocity NITRO 3 Running Shoes', 'خامة نيترو خفيفة تمنحك ارتداداً سريعاً وتماسكاً على الطرق الرطبة', 'Nitrogen-infused NITRO foam daily trainer with durable PUMAGRIP traction', 'Puma', 'shoes', $imageFiles['shoe_run'], 3980.00, 18, ['Color' => ['ar' => 'أزرق', 'en' => 'Blue'], 'Size' => ['ar' => '44', 'en' => '44']]],
-            ['تيشيرت كرة قدم أديداس نسخة المشجعين 2026', 'Adidas 2026 Pro Stadium Football Jersey', 'تيشيرت مباراة أصلي بنسيج تهوية جانبي وشعار مطرز بجودة عالية', 'Breathable stadium-edition football shirt with ribbed crewneck and woven crest', 'Adidas', 'jerseys', $imageFiles['jersey'], 1350.00, null, ['Color' => ['ar' => 'أبيض', 'en' => 'White'], 'Size' => ['ar' => 'كبير', 'en' => 'Large']]],
-            ['طقم تدريب حراس مرمى نايكي بأكمام طويلة', 'Nike Park Goalkeeper Long-Sleeve Jersey', 'تيشيرت كم طويل بحماية خفيفة عند الكوع وخامة سريعة التهوية', 'Long-sleeve goalkeeper match shirt with sweat-wicking fabric and contrast cuffs', 'Nike', 'jerseys', $imageFiles['jersey'], 1290.00, 10, ['Color' => ['ar' => 'أخضر نيون', 'en' => 'Volt Green'], 'Size' => ['ar' => 'كبير', 'en' => 'Large']]],
-            ['شورت كرة قدم أديداس تيرو 24 برو', 'Adidas Tiro 24 Pro Football Shorts', 'شورت كرة خفيف بأطراف شبكية جانبية وحبل ربط داخلي محكم', 'Lightweight match shorts crafted with mesh side inserts for peak pitch ventilation', 'Adidas', 'jerseys', $imageFiles['jersey'], 690.00, null, ['Color' => ['ar' => 'أسود', 'en' => 'Black'], 'Size' => ['ar' => 'متوسط', 'en' => 'Medium']]],
-            ['هودي نايكي كلوب فليس كلاسيك بغطاء رأس', 'Nike Sportswear Club Fleece Pullover Hoodie', 'هودي قطن ناعم للاستخدام اليومي وبعد التمرين بجيب أمامي واسع', 'Soft brushed-back cotton fleece pullover hoodie with ribbed hem and kangaroo pocket', 'Nike', 'outerwear', $imageFiles['hoodie'], 1950.00, 15, ['Color' => ['ar' => 'أحمر نبيتي', 'en' => 'Burgundy'], 'Size' => ['ar' => 'كبير', 'en' => 'Large']]],
-            ['سويت شيرت أديداس ثري سترايبس بنصف سوستة', 'Adidas 3-Stripes Half-Zip Track Top', 'جاكيت تدريب خفيف بتصميم الخطوط الثلاثة الشهيرة وياقة مرتفعة', 'Signature 3-Stripes athletic track top with stand-up collar and zip closure', 'Adidas', 'outerwear', $imageFiles['jacket'], 2190.00, null, ['Color' => ['ar' => 'أسود', 'en' => 'Black'], 'Size' => ['ar' => 'متوسط', 'en' => 'Medium']]],
-            ['فيست تدريب شتوي بوما بدون أكمام مبطن', 'Puma PackLITE Padded Training Vest', 'جاكيت فيست خفيف بدون أكمام يحفظ حرارة الجسم أثناء الجري الشتوي', 'Insulated lightweight sleeveless running gilet keeping your core warm outdoors', 'Puma', 'outerwear', $imageFiles['jacket'], 2450.00, 20, ['Color' => ['ar' => 'أسود', 'en' => 'Black'], 'Size' => ['ar' => 'كبير', 'en' => 'Large']]],
-            ['شنطة جيم دفل نايكي برازيليا مقاس متوسط', 'Nike Brasilia 9.5 Medium Gym Duffel Bag', 'شنطة جيم عملية بجيب منفصل للأحذية وجيوب جانبية لزجاجة المياه', 'Durable 60L training duffel with ventilated shoe compartment and padded strap', 'Nike', 'gear', $imageFiles['gym_bag'], 1490.00, 12, ['Color' => ['ar' => 'أسود', 'en' => 'Black'], 'Size' => ['ar' => '60 لتر', 'en' => '60L']]],
-            ['كاب جري أديداس ايروريدي خفيف الوزن', 'Adidas AEROREADY Runner Sports Cap', 'كاب رياضي بفتحات تهوية ليزرية وحماية من الشمس أثناء الجري بالنهار', 'Lightweight curved-brim athletic cap with moisture-wicking sweatband', 'Adidas', 'gear', $imageFiles['cap'], 490.00, null, ['Color' => ['ar' => 'أبيض', 'en' => 'White'], 'Size' => ['ar' => 'مقاس موحد', 'en' => 'One Size']]],
-            ['طقم 3 أزواج شراب رياضي نايكي كرو مبطن', 'Nike Everyday Cushioned Crew Socks (3-Pack)', 'جوارب رياضية مبطنة عند الكعب والمقدمة لامتصاص الصدمات في الجيم والجري', 'Thick-terry cushioned athletic crew socks with supportive arch band (3 pairs)', 'Nike', 'gear', $imageFiles['cap'], 390.00, null, ['Color' => ['ar' => 'أبيض/أسود', 'en' => 'White/Black'], 'Size' => ['ar' => '40-44', 'en' => 'EU 40-44']]],
-            ['قفازات رفع أثقال أندر آرمور مبطنة جلد', 'Under Armour Weightlifting Gym Gloves', 'قفازات تمرين تحمي راحة اليد وتمنع الانزلاق مع رباط معصم داعم', 'Textured leather-palm lifting gloves featuring perforated breathability and wrist wrap', 'Under Armour', 'gear', $imageFiles['gym_bag'], 720.00, 10, ['Color' => ['ar' => 'أسود', 'en' => 'Black'], 'Size' => ['ar' => 'كبير', 'en' => 'Large']]],
-        ];
-
-        foreach ($singleVariantProducts as $p) {
-            $attrs = [];
-            foreach ($p[9] as $keyEn => $valPair) {
-                $keyAr = match ($keyEn) {
-                    'Color' => 'اللون',
-                    'Size' => 'المقاس',
-                    default => $keyEn,
-                };
-                $attrs[] = [
-                    'key_en' => $keyEn,
-                    'key_ar' => $keyAr,
-                    'value_en' => $valPair['en'],
-                    'value_ar' => $valPair['ar'],
-                ];
-            }
-
-            $productsSpec[] = [
-                'name_ar' => $p[0],
-                'name_en' => $p[1],
-                'desc_ar' => $p[2],
-                'desc_en' => $p[3],
-                'brand' => $p[4],
-                'cat' => $p[5],
-                'img' => $p[6],
-                'variants' => [
-                    [
-                        'price' => $p[7],
-                        'stock' => rand(18, 95),
-                        'discount' => $p[8],
-                        'attributes' => $attrs,
-                    ],
-                ],
-            ];
-        }
-
-        $createdProducts = [];
+        $totalProducts = 0;
         $totalVariants = 0;
+        $totalAttributes = 0;
+        $totalOffers = 0;
+        $createdProducts = [];
 
-        foreach ($productsSpec as $item) {
-            $brandObj = $createdBrands[$item['brand']] ?? null;
-            $catObj = $createdCategories[$item['cat']] ?? null;
+        foreach ($categoryCatalog as $catKey => $group) {
+            $categoryObj = $createdCategories[$catKey];
+            $galleryPool = $galleryPools[$catKey];
+            $isShoe = str_starts_with($catKey, 'shoes');
+            $isGear = $catKey === 'gear';
 
-            $productData = [
-                'name_ar' => $item['name_ar'],
-                'name_en' => $item['name_en'],
-                'desc_ar' => $item['desc_ar'],
-                'desc_en' => $item['desc_en'],
-                'brand_id' => $brandObj?->id,
-            ];
+            foreach ($group['items'] as $idx => $names) {
+                $brandName = $brandNames[($totalProducts + $idx) % count($brandNames)];
+                $brandAr = $createdBrands[$brandName]->name_ar;
+                $brandObj = $createdBrands[$brandName];
 
-            if ($catObj && Schema::hasColumn('products', 'category_id')) {
-                $productData['category_id'] = $catObj->id;
-            }
-
-            $product = Product::create($productData);
-            $createdProducts[] = $product;
-
-            if ($catObj && Schema::hasTable('category_product')) {
-                DB::table('category_product')->insert([
-                    'product_id' => $product->id,
-                    'category_id' => $catObj->id,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                $product = Product::create([
+                    'name_ar' => "{$brandAr} {$names[0]}",
+                    'name_en' => "{$brandName} {$names[1]}",
+                    'desc_ar' => "{$names[0]} من {$brandAr} مصمم بخامات رياضية عالية الجودة لراحة وأداء ممتاز أثناء التمرين والجري.",
+                    'desc_en' => "{$brandName} {$names[1]} crafted with breathable athletic materials for peak comfort, durability, and movement.",
+                    'brand_id' => $brandObj->id,
+                    'category_id' => $categoryObj->id,
                 ]);
-            }
+                $createdProducts[] = $product;
 
-            foreach ($item['variants'] as $variantSpec) {
-                $property = Property::create([
-                    'product_id' => $product->id,
-                    'main_image' => $item['img'],
-                    'images' => [$item['img']],
-                    'stock' => $variantSpec['stock'],
-                    'price' => $variantSpec['price'],
-                ]);
-                $totalVariants++;
-
-                foreach ($variantSpec['attributes'] as $attr) {
-                    Attribute::create([
-                        'property_id' => $property->id,
-                        'key_en' => $attr['key_en'],
-                        'key_ar' => $attr['key_ar'],
-                        'value_en' => $attr['value_en'],
-                        'value_ar' => $attr['value_ar'],
+                if (Schema::hasTable('category_product')) {
+                    DB::table('category_product')->insert([
+                        'product_id' => $product->id,
+                        'category_id' => $categoryObj->id,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ]);
                 }
 
-                if (!empty($variantSpec['discount'])) {
-                    $offerData = [
-                        'property_id' => $property->id,
-                        'start' => now()->subDays(10),
-                        'end' => now()->addYears(2),
+                // Make first 2 products in each category multi-variant (2 variants with distinct prices & options), others 1 variant
+                $variantCount = $idx < 2 ? 2 : 1;
+
+                for ($v = 0; $v < $variantCount; $v++) {
+                    $mainImg = $galleryPool[($idx + $v) % count($galleryPool)];
+                    // Rotate galleryPool so every variant gets 1 main_image + 3 gallery sub-images
+                    $subImages = [];
+                    for ($g = 0; $g < 3; $g++) {
+                        $subImages[] = $galleryPool[($idx + $v + $g + 1) % count($galleryPool)];
+                    }
+                    $galleryImages = array_values(array_unique(array_merge([$mainImg], $subImages)));
+
+                    $price = round($group['base_price'] + (($idx * 135) + ($v * 180)) % 950, 2);
+                    if ($price < 320) {
+                        $price += 200;
+                    }
+
+                    $property = Property::create([
+                        'product_id' => $product->id,
+                        'main_image' => $mainImg,
+                        'images' => $galleryImages,
+                        'stock' => rand(15, 95),
+                        'price' => $price,
+                    ]);
+                    $totalVariants++;
+
+                    // Give each variant 2 or 3 attributes (Color + Size + optional Material/Fit)
+                    $color = $colorChoices[($totalProducts + $v) % count($colorChoices)];
+                    $sizePool = $isShoe ? $shoeSizes : ($isGear ? $gearSizes : $apparelSizes);
+                    $size = $sizePool[($totalProducts + $v) % count($sizePool)];
+
+                    $attrsToCreate = [
+                        ['key_en' => 'Color', 'key_ar' => 'اللون', 'value_en' => $color['en'], 'value_ar' => $color['ar']],
+                        ['key_en' => 'Size', 'key_ar' => 'المقاس', 'value_en' => $size['en'], 'value_ar' => $size['ar']],
                     ];
 
-                    if (Schema::hasColumn('offers', 'discount_price')) {
-                        $offerData['discount_price'] = $variantSpec['discount'];
-                    }
-                    if (Schema::hasColumn('offers', 'discount')) {
-                        $offerData['discount'] = $variantSpec['discount'];
+                    // Add a 3rd attribute on alternating products / variants
+                    if (($totalProducts + $v) % 2 === 0) {
+                        $mat = $materials[($totalProducts + $v) % count($materials)];
+                        $attrsToCreate[] = ['key_en' => 'Material', 'key_ar' => 'الخامة', 'value_en' => $mat['en'], 'value_ar' => $mat['ar']];
+                    } elseif (! $isGear) {
+                        $fit = $fits[$totalProducts % count($fits)];
+                        $attrsToCreate[] = ['key_en' => 'Fit', 'key_ar' => 'القصة', 'value_en' => $fit['en'], 'value_ar' => $fit['ar']];
                     }
 
-                    Offer::create($offerData);
+                    foreach ($attrsToCreate as $attr) {
+                        Attribute::create([
+                            'property_id' => $property->id,
+                            'key_en' => $attr['key_en'],
+                            'key_ar' => $attr['key_ar'],
+                            'value_en' => $attr['value_en'],
+                            'value_ar' => $attr['value_ar'],
+                        ]);
+                        $totalAttributes++;
+                    }
+
+                    // Active offers on ~35% of variants
+                    if (($totalVariants % 3 === 1)) {
+                        $discountPct = [10, 12, 15, 20, 25][($totalVariants) % 5];
+                        $offerData = [
+                            'property_id' => $property->id,
+                            'start' => now()->subDays(10),
+                            'end' => now()->addYears(2),
+                        ];
+                        if (Schema::hasColumn('offers', 'discount_price')) {
+                            $offerData['discount_price'] = $discountPct;
+                        }
+                        if (Schema::hasColumn('offers', 'discount')) {
+                            $offerData['discount'] = $discountPct;
+                        }
+                        Offer::create($offerData);
+                        $totalOffers++;
+                    }
                 }
+
+                $totalProducts++;
             }
         }
 
-        // 7. SEED SAMPLE REVIEWER ACCOUNTS & SPORTSWEAR REVIEWS
-        $this->command->info("\n--- Seeding Customer Accounts & Sportswear Reviews ---");
+        // 7. SEED REVIEWER ACCOUNTS & CUSTOMER REVIEWS ACROSS ALL 100 PRODUCTS
+        $this->command->info("\n--- Seeding Customer Accounts & Reviews ---");
         $reviewersSpec = [
             ['first_name' => 'أحمد', 'last_name' => 'شريف', 'email' => 'ahmed.sherif@mousastore.test', 'phone' => '01011223344'],
             ['first_name' => 'مريم', 'last_name' => 'عادل', 'email' => 'mariam.adel@mousastore.test', 'phone' => '01122334455'],
@@ -714,7 +693,7 @@ class DummyDataSeeder extends Seeder
 
         $totalReviews = 0;
         foreach ($createdProducts as $prodIdx => $prod) {
-            $reviewsForProduct = $prodIdx < 8 ? 3 : ($prodIdx % 2 === 0 ? 2 : 1);
+            $reviewsForProduct = ($prodIdx % 3 === 0) ? 2 : 1;
 
             for ($r = 0; $r < $reviewsForProduct; $r++) {
                 $userObj = $reviewerUsers[($prodIdx + $r) % count($reviewerUsers)];
@@ -730,12 +709,13 @@ class DummyDataSeeder extends Seeder
             }
         }
 
+        // 8. SEED GOVERNORATES, SHIPPING RATES, CONTACTS & CMS POLICY PAGES
         $this->call(GovernorateSeeder::class);
         $this->call(PageSeeder::class);
 
         $this->command->info("\n========================================================");
-        $this->command->info("🎉 MOUSA STORE SPORTSWEAR SEEDING COMPLETED SUCCESSFULLY!");
-        $this->command->info("Products: " . count($createdProducts) . " | Variants: {$totalVariants} | Reviews: {$totalReviews}");
+        $this->command->info("🎉 MOUSA STORE 100-PRODUCT SPORTSWEAR SEEDING COMPLETED!");
+        $this->command->info("Products: {$totalProducts} | Variants: {$totalVariants} | Attributes: {$totalAttributes} | Offers: {$totalOffers} | Reviews: {$totalReviews}");
         $this->command->info("========================================================\n");
     }
 }
