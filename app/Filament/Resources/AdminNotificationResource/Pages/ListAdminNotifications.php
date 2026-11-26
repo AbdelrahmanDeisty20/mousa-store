@@ -48,7 +48,7 @@ class ListAdminNotifications extends ListRecords
                     ]);
 
                     $tokens = UserFcmToken::query()
-                        ->whereNotNull('user_id')
+                        ->whereNotNull('fcm_token')
                         ->pluck('fcm_token')
                         ->unique();
 

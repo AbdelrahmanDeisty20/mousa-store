@@ -119,10 +119,14 @@ class OrderResource extends Resource
             ->action(function (Order $record): void {
                 $record->update(['status' => 'processing']);
 
-                if ($user = $record->user) {
-                    $title = 'تحديث حالة الطلب';
-                    $body = "تم شحن الطلب رقم {$record->order_number} وسيصل إليك قريبًا";
-                    self::notifyCustomer($user->id, $record->id, 'processing', $title, $body);
+                if ($record->user_id) {
+                    self::notifyCustomer(
+                        (int) $record->user_id,
+                        $record->id,
+                        'processing',
+                        'تحديث حالة الطلب',
+                        "تم شحن الطلب رقم {$record->order_number} وسيصل إليك قريبًا"
+                    );
                 }
 
                 FilamentNotification::make()
@@ -142,6 +146,16 @@ class OrderResource extends Resource
             ->visible(fn (Order $record): bool => in_array($record->status, ['pending', 'processing', 'paid'], true) && AdminAccess::can('edit_orders'))
             ->action(function (Order $record): void {
                 $record->update(['status' => 'completed']);
+
+                if ($record->user_id) {
+                    self::notifyCustomer(
+                        (int) $record->user_id,
+                        $record->id,
+                        'completed',
+                        'تحديث حالة الطلب',
+                        "تم تأكيد واكتمال الطلب رقم {$record->order_number} بنجاح"
+                    );
+                }
 
                 FilamentNotification::make()
                     ->title(__('Order marked as completed'))
@@ -183,10 +197,15 @@ class OrderResource extends Resource
                     }
                 });
 
-                if ($user = $record->user) {
-                    $title = 'تحديث حالة الطلب';
-                    $body = "تم إلغاء الطلب رقم {$record->order_number} ";
-                    self::notifyCustomer($user->id, $record->id, 'cancelled', $title, $body);
+                if ($record->user_id) {
+                    $noticeSuffix = filled($data['notice'] ?? null) ? " ({$data['notice']})" : '';
+                    self::notifyCustomer(
+                        (int) $record->user_id,
+                        $record->id,
+                        'cancelled',
+                        'تحديث حالة الطلب',
+                        "تم إلغاء الطلب رقم {$record->order_number}{$noticeSuffix}"
+                    );
                 }
 
                 FilamentNotification::make()
@@ -204,6 +223,7 @@ class OrderResource extends Resource
             'body' => $body,
             'type' => 'order_status',
             'data' => ['order_id' => $orderId, 'status' => $status],
+            'is_read' => false,
         ]);
 
         $order = Order::with('user.fcmTokens')->find($orderId);

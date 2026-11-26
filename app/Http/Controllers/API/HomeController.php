@@ -31,8 +31,8 @@ class HomeController extends Controller
 
         $service = app(FirebaseNotificationService::class);
 
-        // كل التوكنات المرتبطة بمستخدمين
-        $tokens = UserFcmToken::whereNotNull('user_id')
+        // كل التوكنات المسجلة (سواء لمستخدم أو لضيف)
+        $tokens = UserFcmToken::whereNotNull('fcm_token')
             ->pluck('fcm_token')
             ->unique();
 
@@ -359,18 +359,32 @@ class HomeController extends Controller
     public function saveFcmToken(Request $request)
     {
         try {
-            $request->validate([
-                'fcm_token' => 'required|string',
-                'device_id' => 'nullable|string',
+            $validated = $request->validate([
+                'fcm_token' => 'required|string|max:4096',
+                'device_id' => 'nullable|string|max:255',
             ]);
 
-            $token = UserFcmToken::updateOrCreate(
-                ['fcm_token' => $request->fcm_token],
-                [
-                    'user_id' => auth()->id(),
-                    'device_id' => $request->device_id,
-                ]
-            );
+            $authenticatedUserId = $request->user()?->id ?? auth('sanctum')->id() ?? auth()->id();
+            $existing = UserFcmToken::where('fcm_token', $validated['fcm_token'])->first();
+
+            if ($existing) {
+                $updates = [
+                    'device_id' => $validated['device_id'] ?? $existing->device_id,
+                ];
+
+                // Preserve an existing authenticated user link if an unauthenticated tab re-submits the same token.
+                if ($authenticatedUserId !== null) {
+                    $updates['user_id'] = $authenticatedUserId;
+                }
+
+                $existing->update($updates);
+            } else {
+                UserFcmToken::create([
+                    'fcm_token' => $validated['fcm_token'],
+                    'device_id' => $validated['device_id'] ?? null,
+                    'user_id' => $authenticatedUserId,
+                ]);
+            }
 
             return response()->json([
                 'success' => true,

@@ -3,38 +3,104 @@
 namespace App\Service;
 
 use Google\Auth\Credentials\ServiceAccountCredentials;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class FirebaseNotificationService
 {
     /**
+     * Resolve the Firebase service account JSON file path, supporting both explicit config
+     * and a single uploaded `.json` file inside `storage/app/firebase/`.
+     */
+    public function resolveCredentialsPath(): ?string
+    {
+        $configured = trim((string) config('services.firebase.credentials', config('firebase.credentials', '')));
+        if ($configured !== '') {
+            $candidate = str_starts_with($configured, DIRECTORY_SEPARATOR) || preg_match('/^[A-Za-z]:[\/\\\\]/', $configured)
+                ? $configured
+                : base_path($configured);
+
+            if (is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        $matches = glob(storage_path('app/firebase/*.json')) ?: [];
+        if (count($matches) === 1 && is_file($matches[0])) {
+            return $matches[0];
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolve Firebase Project ID from config or directly from the service account JSON.
+     */
+    public function resolveProjectId(?string $credentialsPath = null): ?string
+    {
+        $projectId = trim((string) config('services.firebase.project_id', ''));
+        if ($projectId !== '') {
+            return $projectId;
+        }
+
+        $credentialsPath ??= $this->resolveCredentialsPath();
+        if ($credentialsPath && is_file($credentialsPath)) {
+            $json = json_decode((string) file_get_contents($credentialsPath), true);
+            if (! empty($json['project_id'])) {
+                return trim((string) $json['project_id']);
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Check whether Firebase project ID and credentials JSON exist on disk.
      */
     public function isConfigured(): bool
     {
-        $projectId = env('FIREBASE_PROJECT_ID');
-        $credentialsRel = env('FIREBASE_CREDENTIALS');
+        $credentialsPath = $this->resolveCredentialsPath();
 
-        if (empty($projectId) || empty($credentialsRel)) {
-            return false;
-        }
-
-        return is_file(base_path($credentialsRel));
+        return $credentialsPath !== null && $this->resolveProjectId($credentialsPath) !== null;
     }
 
-    private function accessToken()
+    private function accessToken(?string $credentialsPath = null): ?string
     {
-        $credentials = new ServiceAccountCredentials(
-            ['https://www.googleapis.com/auth/firebase.messaging'],
-            json_decode(
-                file_get_contents(base_path(env('FIREBASE_CREDENTIALS'))),
-                true
-            )
-        );
+        $credentialsPath ??= $this->resolveCredentialsPath();
+        if (! $credentialsPath) {
+            return null;
+        }
 
-        $credentials->fetchAuthToken();
-        return $credentials->getLastReceivedToken()['access_token'];
+        $cacheKey = 'firebase_oauth_token_' . md5($credentialsPath . '|' . (@filemtime($credentialsPath) ?: 0));
+        if ($cached = Cache::get($cacheKey)) {
+            return $cached;
+        }
+
+        try {
+            $json = json_decode((string) file_get_contents($credentialsPath), true);
+            if (! is_array($json)) {
+                Log::error('Firebase credentials JSON is invalid: ' . $credentialsPath);
+                return null;
+            }
+
+            $credentials = new ServiceAccountCredentials(
+                ['https://www.googleapis.com/auth/firebase.messaging'],
+                $json
+            );
+
+            $credentials->fetchAuthToken();
+            $token = $credentials->getLastReceivedToken()['access_token'] ?? null;
+
+            if ($token) {
+                Cache::put($cacheKey, $token, 3000);
+            }
+
+            return $token;
+        } catch (\Throwable $e) {
+            Log::error('Firebase OAuth token fetch failed: ' . $e->getMessage());
+            return null;
+        }
     }
 
     /**
@@ -44,16 +110,24 @@ class FirebaseNotificationService
      */
     public function sendToToken(string $token, string $title, string $body, array $data = [])
     {
-        if (! $this->isConfigured()) {
+        $credentialsPath = $this->resolveCredentialsPath();
+        $projectId = $this->resolveProjectId($credentialsPath);
+
+        if (! $credentialsPath || ! $projectId) {
             Log::warning('Firebase notification skipped: missing FIREBASE_PROJECT_ID or credentials JSON.');
             return ['success' => false, 'skipped' => true];
         }
 
+        $oauthToken = $this->accessToken($credentialsPath);
+        if (! $oauthToken) {
+            return ['success' => false, 'skipped' => true];
+        }
+
         $message = [
-            "token" => $token,
-            "notification" => [
-                "title" => $title,
-                "body"  => $body,
+            'token' => $token,
+            'notification' => [
+                'title' => $title,
+                'body' => $body,
             ],
         ];
 
@@ -62,14 +136,21 @@ class FirebaseNotificationService
             $message['data'] = $stringData;
         }
 
-        return Http::withToken($this->accessToken())
+        $response = Http::withToken($oauthToken)
             ->post(
-                "https://fcm.googleapis.com/v1/projects/" . env('FIREBASE_PROJECT_ID') . "/messages:send",
-                [
-                    "message" => $message,
-                ]
-            )
-            ->json();
+                "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send",
+                ['message' => $message]
+            );
+
+        if ($response->failed()) {
+            Log::warning('Firebase FCM v1 send failed.', [
+                'project_id' => $projectId,
+                'status' => $response->status(),
+                'body' => $response->json() ?? $response->body(),
+            ]);
+        }
+
+        return $response->json();
     }
 
     /**

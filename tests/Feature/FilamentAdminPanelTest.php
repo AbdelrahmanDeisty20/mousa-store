@@ -330,6 +330,14 @@ class FilamentAdminPanelTest extends TestCase
         $this->assertSame('Out of stock in branch', $order->fresh()->notice);
         $this->assertSame(7, $variant->fresh()->stock);
 
+        $cancelNotification = UserNotification::where('user_id', $this->customer->id)
+            ->where('type', 'order_status')
+            ->latest('id')
+            ->first();
+        $this->assertNotNull($cancelNotification);
+        $this->assertSame('cancelled', $cancelNotification->data['status'] ?? null);
+        $this->assertFalse($cancelNotification->is_read);
+
         $order2 = Order::create([
             'order_number' => 'ORD-FLOW-2',
             'user_id' => $this->customer->id,
@@ -345,6 +353,15 @@ class FilamentAdminPanelTest extends TestCase
             ->callAction('complete');
 
         $this->assertSame('completed', $order2->fresh()->status);
+
+        $completeNotification = UserNotification::where('user_id', $this->customer->id)
+            ->where('type', 'order_status')
+            ->latest('id')
+            ->first();
+        $this->assertNotNull($completeNotification);
+        $this->assertSame('completed', $completeNotification->data['status'] ?? null);
+        $this->assertSame($order2->id, $completeNotification->data['order_id'] ?? null);
+        $this->assertFalse($completeNotification->is_read);
     }
 
     public function test_offer_creation_dispatches_cart_and_favorite_events(): void
@@ -595,11 +612,64 @@ class FilamentAdminPanelTest extends TestCase
             'type' => 'broadcast',
         ]);
 
-        // 6. Frontend Customer API `/api/v1/notifications` returns untouched JSON structure including global broadcast
+        // 6. Frontend Customer API `/api/v1/notifications` returns Laravel paginated contract expected by the React store
         Sanctum::actingAs($this->customer);
-        $this->getJson('/api/v1/notifications')
+        UserNotification::create([
+            'user_id' => $this->customer->id,
+            'title' => 'تحديث حالة الطلب',
+            'body' => 'تم تأكيد واكتمال الطلب رقم ORD-BELL-1 بنجاح',
+            'type' => 'order_status',
+            'data' => ['order_id' => $order->id, 'status' => 'completed'],
+            'is_read' => false,
+        ]);
+
+        $this->getJson('/api/v1/notifications?page=1&limit=10')
             ->assertOk()
             ->assertJsonPath('success', true)
-            ->assertJsonFragment(['title' => 'تخفيضات نهاية الأسبوع']);
+            ->assertJsonPath('data.current_page', 1)
+            ->assertJsonFragment(['title' => 'تخفيضات نهاية الأسبوع'])
+            ->assertJsonFragment(['type' => 'order_status', 'order_id' => $order->id]);
+
+        $ordersResponse = $this->getJson('/api/v1/notifications/orders?page=1&limit=10')
+            ->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.current_page', 1)
+            ->assertJsonFragment(['type' => 'order_status', 'order_id' => $order->id]);
+        $this->assertCount(1, $ordersResponse->json('data.data'));
+
+        // 7. Guest and authenticated FCM token registration do not fail on null user_id or wipe user ownership
+        $this->app['auth']->forgetGuards();
+        $this->postJson('/api/v1/fcm-token', [
+            'fcm_token' => 'test-browser-fcm-token-123',
+            'device_id' => 'device-abc-1',
+        ])->assertOk()->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('user_fcm_tokens', [
+            'fcm_token' => 'test-browser-fcm-token-123',
+            'user_id' => null,
+        ]);
+
+        Sanctum::actingAs($this->customer);
+        $this->postJson('/api/v1/fcm-token-user', [
+            'fcm_token' => 'test-browser-fcm-token-123',
+            'device_id' => 'device-abc-1',
+        ])->assertOk()->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('user_fcm_tokens', [
+            'fcm_token' => 'test-browser-fcm-token-123',
+            'user_id' => $this->customer->id,
+        ]);
+
+        // Unauthenticated tab posting the same token keeps existing user_id instead of failing with SQL 1048
+        $this->app['auth']->forgetGuards();
+        $this->postJson('/api/v1/fcm-token', [
+            'fcm_token' => 'test-browser-fcm-token-123',
+            'device_id' => 'device-abc-1',
+        ])->assertOk()->assertJsonPath('success', true);
+
+        $this->assertDatabaseHas('user_fcm_tokens', [
+            'fcm_token' => 'test-browser-fcm-token-123',
+            'user_id' => $this->customer->id,
+        ]);
     }
 }
