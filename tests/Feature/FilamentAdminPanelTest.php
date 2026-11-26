@@ -741,6 +741,11 @@ class FilamentAdminPanelTest extends TestCase
             'quantity' => 2,
         ])->assertOk();
 
+        $this->getJson('/api/v1/carts')
+            ->assertOk()
+            ->assertJsonPath('tax_rate', 10)
+            ->assertJsonPath('tax_amount', 100);
+
         $this->getJson('/api/v1/carts?governorate_id=' . $gov->id)
             ->assertOk()
             ->assertJsonPath('tax_rate', 10)

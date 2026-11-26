@@ -2,12 +2,12 @@
 
 namespace App\Service;
 
-use App\Models\{Address, Cart, Coupon, Property, Setting};
+use App\Models\{Cart, Coupon, Order, Property, Setting};
 
 class CheckoutPricingService
 {
     /**
-     * Resolve effective shipping and tax settings for a governorate, falling back to user address or global default.
+     * Resolve effective shipping and tax settings for a governorate, falling back to user's last order governorate or global default.
      */
     public function resolveSetting(?int $governorateId = null, ?int $userId = null): ?Setting
     {
@@ -19,8 +19,12 @@ class CheckoutPricingService
         }
 
         if ($userId) {
-            $addressGovId = Address::where('user_id', $userId)->value('governorate_id');
-            if ($addressGovId && ($setting = Setting::where('governorate_id', $addressGovId)->first())) {
+            $lastGovId = Order::where('user_id', $userId)
+                ->whereNotNull('governorate_id')
+                ->latest('id')
+                ->value('governorate_id');
+
+            if ($lastGovId && ($setting = Setting::where('governorate_id', $lastGovId)->first())) {
                 return $setting;
             }
         }
